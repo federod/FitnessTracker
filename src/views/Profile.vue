@@ -325,13 +325,14 @@ function getBMICategory(bmi: number) {
 .goals-note {
   margin-top: 1.5rem;
   padding: 1rem;
-  background: #e3f2fd;
-  border-left: 4px solid var(--secondary-color);
-  border-radius: 4px;
+  background: var(--fill-tertiary);
+  border-left: 4px solid var(--ios-blue);
+  border-radius: 8px;
 }
 
 .goals-note p {
   margin-bottom: 0.5rem;
+  color: var(--text-primary);
 }
 
 .goals-note ul {
@@ -341,6 +342,7 @@ function getBMICategory(bmi: number) {
 
 .goals-note li {
   color: var(--text-secondary);
+  margin: 0.25rem 0;
 }
 
 @media (max-width: 768px) {
