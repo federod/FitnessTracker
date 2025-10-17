@@ -479,7 +479,8 @@ function addCustomFood() {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -488,13 +489,14 @@ function addCustomFood() {
 }
 
 .modal {
-  background: white;
-  border-radius: 8px;
+  background: var(--card-bg);
+  border-radius: 12px;
   max-width: 600px;
   width: 100%;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 .modal-header {
@@ -508,6 +510,7 @@ function addCustomFood() {
 .modal-header h3 {
   margin: 0;
   text-transform: capitalize;
+  color: var(--text-primary);
 }
 
 .close-btn {
@@ -586,6 +589,7 @@ function addCustomFood() {
 
 .food-details h4 {
   margin-bottom: 0.5rem;
+  color: var(--text-primary);
 }
 
 .nutrition-info {
@@ -623,6 +627,7 @@ function addCustomFood() {
 
 .total-nutrition h5 {
   margin-top: 0;
+  color: var(--text-primary);
 }
 
 .add-btn {
@@ -644,5 +649,6 @@ function addCustomFood() {
 
 .form-group label {
   font-weight: 500;
+  color: var(--text-primary);
 }
 </style>
