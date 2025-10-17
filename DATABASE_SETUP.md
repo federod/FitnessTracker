@@ -14,31 +14,36 @@
 
 ### For Local Development:
 
-Create a `.env` file in the project root:
+Your `.env` file has already been created with the correct values:
 
 ```env
-DATABASE_URL=your_neon_connection_string_here
-JWT_SECRET=your_super_secret_jwt_key_here
+DATABASE_URL=postgresql://neondb_owner:npg_OitYChM18rAG@ep-blue-bird-aevuhu6p.c-2.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require
+JWT_SECRET=AuVoCdpE989fYAFSAPiFLxX/eck2GnlN30W3wdAOxGY=
 ```
 
 ### For Netlify Deployment:
 
-1. Go to your Netlify site dashboard
-2. Go to **Site settings** → **Environment variables**
-3. Add these variables:
-   - `DATABASE_URL`: Your Neon connection string
-   - `JWT_SECRET`: A random secret key for JWT tokens (generate one with: `openssl rand -base64 32`)
+1. Go to your Netlify site dashboard: https://app.netlify.com/projects/fedefitnesspartner/configuration/env
+2. Add these **NEW** variables (in addition to the existing NETLIFY_DATABASE_URL):
+   - `DATABASE_URL`: `postgresql://neondb_owner:npg_OitYChM18rAG@ep-blue-bird-aevuhu6p.c-2.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require`
+   - `JWT_SECRET`: `AuVoCdpE989fYAFSAPiFLxX/eck2GnlN30W3wdAOxGY=`
+3. Make sure both are set to **"All scopes"**
+4. Click **Save**
 
 ## Step 3: Generate and Run Migrations
 
-Run these commands to create the database tables:
+✅ **Already completed!** The database schema has been successfully migrated to your Neon database.
 
+All tables have been created:
+- ✓ users
+- ✓ user_profiles
+- ✓ food_items
+- ✓ food_entries
+- ✓ exercises
+
+If you need to run migrations again in the future:
 ```bash
-# Generate migration files
-npx drizzle-kit generate
-
-# Push the schema to your database
-npx drizzle-kit push
+npx tsx scripts/run-migration.ts
 ```
 
 ## Step 4: Seed Default Food Items (Optional)
@@ -87,7 +92,12 @@ The following tables will be created:
 
 ## Next Steps
 
-After setting up the database:
-1. Update Netlify with the environment variables
-2. Redeploy your site
-3. The authentication system will be ready to use!
+To complete the deployment:
+
+1. **Add environment variables to Netlify** (see Step 2 above)
+2. **Redeploy your site** - Either:
+   - Push any change to GitHub (automatic deploy), OR
+   - Go to Netlify dashboard → Deploys → Trigger deploy
+3. **Test the authentication** - Visit your site and try signing up!
+
+The authentication system is now fully configured and ready to use! 🎉
