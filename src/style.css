@@ -1,0 +1,324 @@
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Light Theme */
+:root[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f2f2f7;
+  --bg-tertiary: #ffffff;
+  --bg-elevated: #ffffff;
+
+  --text-primary: #000000;
+  --text-secondary: #3c3c43;
+  --text-tertiary: #3c3c4399;
+
+  --fill-primary: #787880;
+  --fill-secondary: #78788026;
+  --fill-tertiary: #7878801a;
+
+  --separator: #3c3c4329;
+  --separator-opaque: #c6c6c8;
+
+  --label-primary: #000000;
+  --label-secondary: #3c3c43;
+  --label-tertiary: #3c3c4399;
+
+  /* iOS System Colors */
+  --ios-blue: #007AFF;
+  --ios-green: #34C759;
+  --ios-orange: #FF9500;
+  --ios-red: #FF3B30;
+  --ios-purple: #AF52DE;
+  --ios-pink: #FF2D55;
+  --ios-teal: #5AC8FA;
+  --ios-indigo: #5856D6;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Dark Theme - iOS Style */
+:root[data-theme="dark"] {
+  --bg-primary: #000000;
+  --bg-secondary: #1c1c1e;
+  --bg-tertiary: #2c2c2e;
+  --bg-elevated: #1c1c1e;
+
+  --text-primary: #ffffff;
+  --text-secondary: #ebebf5;
+  --text-tertiary: #ebebf599;
+
+  --fill-primary: #7878805c;
+  --fill-secondary: #78788052;
+  --fill-tertiary: #7878803d;
+
+  --separator: #54545899;
+  --separator-opaque: #38383a;
+
+  --label-primary: #ffffff;
+  --label-secondary: #ebebf5;
+  --label-tertiary: #ebebf599;
+
+  /* iOS System Colors - Dark Mode Variants */
+  --ios-blue: #0A84FF;
+  --ios-green: #30D158;
+  --ios-orange: #FF9F0A;
+  --ios-red: #FF453A;
+  --ios-purple: #BF5AF2;
+  --ios-pink: #FF375F;
+  --ios-teal: #64D2FF;
+  --ios-indigo: #5E5CE6;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* Common Variables */
+:root {
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: var(--bg-primary);
+}
+
+/* iOS-Style Buttons */
+button {
+  border-radius: var(--radius-md);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 17px;
+  font-weight: 600;
+  font-family: inherit;
+  background: var(--ios-blue);
+  color: white;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: none;
+  min-height: 44px;
+  touch-action: manipulation;
+  user-select: none;
+  letter-spacing: -0.4px;
+}
+
+button:hover {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+button:active {
+  opacity: 0.6;
+  transform: scale(0.96);
+}
+
+button:focus-visible {
+  outline: 3px solid var(--ios-blue);
+  outline-offset: 2px;
+}
+
+/* iOS-Style Form Inputs */
+input, select, textarea {
+  font-family: inherit;
+  font-size: 17px;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: var(--fill-tertiary);
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+  min-height: 44px;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  background-color: var(--fill-secondary);
+  box-shadow: 0 0 0 2px var(--ios-blue);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+h1 { font-size: 34px; font-weight: 700; }
+h2 { font-size: 28px; font-weight: 700; }
+h3 { font-size: 22px; font-weight: 600; }
+h4 { font-size: 20px; font-weight: 600; }
+h5 { font-size: 17px; font-weight: 600; }
+h6 { font-size: 15px; font-weight: 600; }
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  padding-bottom: calc(80px + 1rem);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-bottom: 1rem;
+  }
+}
+
+/* iOS-Style Cards with Frosted Glass Effect */
+.card {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1rem;
+  transition: all var(--transition-normal);
+  border: 0.5px solid var(--separator);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+[data-theme="dark"] .card {
+  background: var(--bg-elevated);
+  border: 0.5px solid var(--separator);
+}
+
+.card:active {
+  transform: scale(0.99);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* iOS-Style List Items */
+.list-item {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  transition: background-color var(--transition-fast);
+}
+
+.list-item:active {
+  background: var(--fill-tertiary);
+}
+
+/* iOS-Style Separators */
+.separator {
+  height: 0.5px;
+  background: var(--separator);
+  border: none;
+  margin: 1rem 0;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .container {
+    padding: 0.75rem;
+    padding-bottom: calc(80px + 0.75rem);
+  }
+
+  .card {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  h1 { font-size: 28px; }
+  h2 { font-size: 24px; }
+  h3 { font-size: 20px; }
+
+  button {
+    font-size: 17px;
+    padding: 0.75rem 1.25rem;
+  }
+}
+
+/* Status Bar Safe Area */
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition: background-color var(--transition-normal),
+              color var(--transition-normal),
+              border-color var(--transition-normal);
+}
+
+button, input, select, textarea, .card {
+  transition: all var(--transition-fast);
+}
