@@ -501,12 +501,13 @@ function resetTracking() {
 }
 
 .btn-start {
-  background: var(--ios-green);
-  color: white;
+  background: rgba(142, 142, 147, 0.12);
+  color: var(--ios-blue);
+  border: 1px solid var(--separator);
 }
 
 .btn-start:hover:not(:disabled) {
-  background: #28cd41;
+  background: var(--fill-tertiary);
 }
 
 .btn-pause {
