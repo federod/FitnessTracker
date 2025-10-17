@@ -69,7 +69,10 @@ export const handler = async (event) => {
       }
     }
 
-    const { age, gender, height, weight, activityLevel, goal, targetWeight } = JSON.parse(event.body || '{}')
+    const {
+      age, gender, height, weight, activityLevel, goal, targetWeight,
+      useCustomMacros, customCalories, customProtein, customCarbs, customFat
+    } = JSON.parse(event.body || '{}')
 
     // Validate required fields
     if (!age || !gender || !height || !weight || !activityLevel || !goal) {
@@ -100,8 +103,16 @@ export const handler = async (event) => {
 
     // Upsert user profile (insert or update)
     const profiles = await sql`
-      INSERT INTO user_profiles (user_id, age, gender, height, weight, activity_level, goal, target_weight, updated_at)
-      VALUES (${decoded.userId}, ${age}, ${gender}, ${height}, ${weight}, ${activityLevel}, ${goal}, ${targetWeight || null}, NOW())
+      INSERT INTO user_profiles (
+        user_id, age, gender, height, weight, activity_level, goal, target_weight,
+        use_custom_macros, custom_calories, custom_protein, custom_carbs, custom_fat,
+        updated_at
+      )
+      VALUES (
+        ${decoded.userId}, ${age}, ${gender}, ${height}, ${weight}, ${activityLevel}, ${goal}, ${targetWeight || null},
+        ${useCustomMacros ? 1 : 0}, ${customCalories || null}, ${customProtein || null}, ${customCarbs || null}, ${customFat || null},
+        NOW()
+      )
       ON CONFLICT (user_id)
       DO UPDATE SET
         age = ${age},
@@ -111,6 +122,11 @@ export const handler = async (event) => {
         activity_level = ${activityLevel},
         goal = ${goal},
         target_weight = ${targetWeight || null},
+        use_custom_macros = ${useCustomMacros ? 1 : 0},
+        custom_calories = ${customCalories || null},
+        custom_protein = ${customProtein || null},
+        custom_carbs = ${customCarbs || null},
+        custom_fat = ${customFat || null},
         updated_at = NOW()
       RETURNING *
     `

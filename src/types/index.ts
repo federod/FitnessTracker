@@ -37,6 +37,11 @@ export interface UserProfile {
   activityLevel: 'sedentary' | 'light' | 'moderate' | 'active' | 'very-active'
   goal: 'lose' | 'maintain' | 'gain'
   targetWeight?: number
+  useCustomMacros?: boolean
+  customCalories?: number
+  customProtein?: number
+  customCarbs?: number
+  customFat?: number
 }
 
 export interface DailyGoals {

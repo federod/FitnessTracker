@@ -17,7 +17,12 @@ const profileForm = ref<UserProfile>({
   weight: 70,
   activityLevel: 'moderate',
   goal: 'maintain',
-  targetWeight: 70
+  targetWeight: 70,
+  useCustomMacros: false,
+  customCalories: 0,
+  customProtein: 0,
+  customCarbs: 0,
+  customFat: 0
 })
 
 onMounted(async () => {
@@ -55,6 +60,24 @@ function getBMICategory(bmi: number) {
   if (bmi < 25) return 'Normal weight'
   if (bmi < 30) return 'Overweight'
   return 'Obese'
+}
+
+function applyCarnivorePreset() {
+  const tdee = userStore.tdee || 2000
+  // Carnivore: 70% protein, 30% fat, 0% carbs
+  profileForm.value.customCalories = tdee
+  profileForm.value.customProtein = Math.round((tdee * 0.7) / 4)
+  profileForm.value.customCarbs = 0
+  profileForm.value.customFat = Math.round((tdee * 0.3) / 9)
+}
+
+function applyKetoPreset() {
+  const tdee = userStore.tdee || 2000
+  // Keto: 20% protein, 5% carbs, 75% fat
+  profileForm.value.customCalories = tdee
+  profileForm.value.customProtein = Math.round((tdee * 0.2) / 4)
+  profileForm.value.customCarbs = Math.round((tdee * 0.05) / 4)
+  profileForm.value.customFat = Math.round((tdee * 0.75) / 9)
 }
 </script>
 
@@ -129,7 +152,47 @@ function getBMICategory(bmi: number) {
                 <input v-model.number="profileForm.targetWeight" type="number" min="1" step="0.1" />
               </div>
 
-              <button type="submit">Save Profile</button>
+              <div class="form-group custom-macros-section">
+                <div class="custom-macros-header">
+                  <label>
+                    <input type="checkbox" v-model="profileForm.useCustomMacros" class="checkbox" />
+                    Use Custom Macro Goals
+                  </label>
+                  <span class="help-text">Perfect for carnivore, keto, or custom diets</span>
+                </div>
+
+                <div v-if="profileForm.useCustomMacros" class="custom-macros-inputs">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Daily Calories:</label>
+                      <input v-model.number="profileForm.customCalories" type="number" min="0" required />
+                    </div>
+                    <div class="form-group">
+                      <label>Protein (g):</label>
+                      <input v-model.number="profileForm.customProtein" type="number" min="0" required />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Carbs (g):</label>
+                      <input v-model.number="profileForm.customCarbs" type="number" min="0" required />
+                    </div>
+                    <div class="form-group">
+                      <label>Fat (g):</label>
+                      <input v-model.number="profileForm.customFat" type="number" min="0" required />
+                    </div>
+                  </div>
+                  <div class="macro-presets">
+                    <p class="presets-label">Quick Presets:</p>
+                    <button type="button" @click="applyCarnivorePreset" class="preset-btn">Carnivore (High Protein)</button>
+                    <button type="button" @click="applyKetoPreset" class="preset-btn">Keto (High Fat)</button>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" :disabled="userStore.isLoading">
+                {{ userStore.isLoading ? 'Saving...' : 'Save Profile' }}
+              </button>
             </form>
           </div>
 
@@ -343,6 +406,87 @@ function getBMICategory(bmi: number) {
 .goals-note li {
   color: var(--text-secondary);
   margin: 0.25rem 0;
+}
+
+.custom-macros-section {
+  border-top: 2px solid var(--separator);
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.custom-macros-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.custom-macros-header label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--ios-blue);
+}
+
+.help-text {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+  margin-left: 2rem;
+}
+
+.custom-macros-inputs {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: var(--fill-tertiary);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.macro-presets {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid var(--separator);
+}
+
+.presets-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.preset-btn {
+  padding: 0.5rem 1rem;
+  background: var(--ios-blue);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-btn:hover {
+  opacity: 0.8;
+}
+
+.preset-btn:active {
+  transform: scale(0.98);
 }
 
 @media (max-width: 768px) {

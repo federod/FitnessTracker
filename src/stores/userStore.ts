@@ -44,6 +44,16 @@ export const useUserStore = defineStore('user', () => {
       }
     }
 
+    // Use custom macros if set
+    if (profile.value.useCustomMacros && profile.value.customCalories) {
+      return {
+        calories: profile.value.customCalories,
+        protein: profile.value.customProtein || 0,
+        carbs: profile.value.customCarbs || 0,
+        fat: profile.value.customFat || 0
+      }
+    }
+
     let calorieGoal = tdee.value
 
     if (profile.value.goal === 'lose') {
