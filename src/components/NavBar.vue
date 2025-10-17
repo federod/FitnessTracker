@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/authStore'
 import ThemeToggle from './ThemeToggle.vue'
 
 const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -12,7 +20,7 @@ const route = useRoute()
         <h1>Fitness Tracker</h1>
       </div>
       <div class="nav-right">
-        <ul class="nav-links">
+        <ul v-if="authStore.isAuthenticated()" class="nav-links">
           <li>
             <RouterLink to="/" :class="{ active: route.name === 'dashboard' }">
               Dashboard
@@ -32,6 +40,9 @@ const route = useRoute()
             <RouterLink to="/profile" :class="{ active: route.name === 'profile' }">
               Profile
             </RouterLink>
+          </li>
+          <li>
+            <button @click="handleLogout" class="logout-btn">Logout</button>
           </li>
         </ul>
         <ThemeToggle />
@@ -108,6 +119,27 @@ const route = useRoute()
   background: var(--ios-blue);
   color: white;
   font-weight: 600;
+}
+
+.logout-btn {
+  color: var(--ios-red);
+  background: var(--fill-tertiary);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.logout-btn:hover {
+  background: var(--fill-secondary);
+}
+
+.logout-btn:active {
+  opacity: 0.6;
+  transform: scale(0.96);
 }
 
 @media (max-width: 768px) {
