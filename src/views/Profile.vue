@@ -203,9 +203,12 @@ function cancelEditingName() {
 
               <div class="form-group custom-macros-section">
                 <div class="custom-macros-header">
-                  <label>
-                    <input type="checkbox" v-model="profileForm.useCustomMacros" class="checkbox" />
-                    Use Custom Macro Goals
+                  <label class="toggle-label">
+                    <span class="toggle-text">Use Custom Macro Goals</span>
+                    <label class="toggle-switch">
+                      <input type="checkbox" v-model="profileForm.useCustomMacros" />
+                      <span class="toggle-slider"></span>
+                    </label>
                   </label>
                   <span class="help-text">Perfect for carnivore, keto, or custom diets</span>
                 </div>
@@ -469,48 +472,72 @@ function cancelEditingName() {
   gap: 0.5rem;
 }
 
-.custom-macros-header label {
+.custom-macros-header .toggle-label {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-weight: 600;
-  font-size: 16px;
+  justify-content: space-between;
+  width: 100%;
   cursor: pointer;
   user-select: none;
 }
 
-.checkbox {
-  position: relative;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  background: var(--fill-tertiary);
-  border: 2px solid var(--separator);
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.checkbox:checked {
-  background: var(--ios-blue);
-  border-color: var(--ios-blue);
-}
-
-.checkbox:checked::after {
-  content: '✓';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
+.toggle-text {
+  font-weight: 600;
   font-size: 16px;
-  font-weight: bold;
+  color: var(--text-primary);
 }
 
-.checkbox:hover {
-  border-color: var(--ios-blue);
+/* iOS-style toggle switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 51px;
+  height: 31px;
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--fill-tertiary);
+  border: 2px solid var(--separator);
+  transition: all 0.3s ease;
+  border-radius: 31px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 27px;
+  width: 27px;
+  left: 0;
+  bottom: 0;
+  background-color: white;
+  transition: all 0.3s ease;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: var(--ios-green);
+  border-color: var(--ios-green);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-switch:hover .toggle-slider {
+  opacity: 0.9;
 }
 
 .help-text {
