@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useFoodStore } from '@/stores/foodStore'
 import { useUserStore } from '@/stores/userStore'
 import NavBar from '@/components/NavBar.vue'
@@ -15,6 +15,9 @@ const selectedFood = ref<FoodItem | null>(null)
 const servings = ref(1)
 const selectedMeal = ref<'breakfast' | 'lunch' | 'dinner' | 'snack'>('breakfast')
 const searchQuery = ref('')
+const apiResults = ref<FoodItem[]>([])
+const isSearching = ref(false)
+const searchError = ref('')
 
 const showCustomFoodModal = ref(false)
 const customFood = ref({
@@ -35,10 +38,54 @@ const todaysSummary = computed(() => foodStore.getTodaysSummary())
 const dailyGoals = computed(() => userStore.dailyGoals)
 
 const filteredFoods = computed(() => {
+  // If we have API results, show those
+  if (apiResults.value.length > 0) {
+    return apiResults.value
+  }
+
+  // Otherwise show local foods filtered by query
   if (!searchQuery.value) return foodStore.commonFoods
   return foodStore.commonFoods.filter(food =>
     food.name.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
+})
+
+// Watch search query and call Ninja API
+watch(searchQuery, async (newQuery) => {
+  if (!newQuery || newQuery.length < 3) {
+    apiResults.value = []
+    searchError.value = ''
+    return
+  }
+
+  isSearching.value = true
+  searchError.value = ''
+
+  try {
+    const response = await fetch(`/.netlify/functions/nutrition-search?query=${encodeURIComponent(newQuery)}`)
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Search failed')
+    }
+
+    // Convert Ninja API format to our FoodItem format
+    apiResults.value = data.items.map((item: any, index: number) => ({
+      id: `api-${Date.now()}-${index}`,
+      name: item.name,
+      calories: Math.round(item.calories),
+      protein: Math.round(item.protein_g * 10) / 10,
+      carbs: Math.round(item.carbohydrates_total_g * 10) / 10,
+      fat: Math.round(item.fat_total_g * 10) / 10,
+      servingSize: `${item.serving_size_g}g`
+    }))
+  } catch (error) {
+    console.error('Search error:', error)
+    searchError.value = error instanceof Error ? error.message : 'Search failed'
+    apiResults.value = []
+  } finally {
+    isSearching.value = false
+  }
 })
 
 const breakfastEntries = computed(() => foodStore.getEntriesByMealType('breakfast'))
@@ -74,6 +121,8 @@ function closeAddModal() {
   selectedFood.value = null
   servings.value = 1
   searchQuery.value = ''
+  apiResults.value = []
+  searchError.value = ''
 }
 
 function removeEntry(id: string) {
@@ -228,9 +277,17 @@ function addCustomFood() {
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search foods..."
+            placeholder="Search foods (type at least 3 characters)..."
             class="search-input"
           />
+
+          <div v-if="isSearching" class="search-status">
+            <p>Searching nutrition database...</p>
+          </div>
+
+          <div v-if="searchError" class="search-error">
+            <p>{{ searchError }}</p>
+          </div>
 
           <div v-if="!selectedFood" class="food-list">
             <div
@@ -535,6 +592,22 @@ function addCustomFood() {
 
 .search-input {
   width: 100%;
+  margin-bottom: 1rem;
+}
+
+.search-status {
+  text-align: center;
+  padding: 1rem;
+  color: var(--ios-blue);
+  font-style: italic;
+}
+
+.search-error {
+  text-align: center;
+  padding: 1rem;
+  color: var(--ios-red);
+  background: var(--fill-tertiary);
+  border-radius: 8px;
   margin-bottom: 1rem;
 }
 
