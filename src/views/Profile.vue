@@ -476,20 +476,47 @@ function cancelEditingName() {
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
+  user-select: none;
 }
 
 .checkbox {
-  width: 20px;
-  height: 20px;
+  position: relative;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
-  accent-color: var(--ios-blue);
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--fill-tertiary);
+  border: 2px solid var(--separator);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.checkbox:checked {
+  background: var(--ios-blue);
+  border-color: var(--ios-blue);
+}
+
+.checkbox:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.checkbox:hover {
+  border-color: var(--ios-blue);
 }
 
 .help-text {
   font-size: 13px;
   color: var(--text-tertiary);
   font-weight: 400;
-  margin-left: 2rem;
 }
 
 .custom-macros-inputs {
