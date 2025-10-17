@@ -17,7 +17,6 @@ const exerciseForm = ref({
   instructions: ''
 })
 
-const searchQuery = ref('')
 const selectedMuscle = ref('')
 const selectedDifficulty = ref('')
 const apiExercises = ref<any[]>([])
