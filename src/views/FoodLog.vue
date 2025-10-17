@@ -534,9 +534,16 @@ function closeRecipeModal() {
 }
 
 .secondary-btn {
-  background: var(--ios-purple);
+  background: rgba(142, 142, 147, 0.12);
+  color: var(--ios-blue);
   font-size: 0.9rem;
   padding: 0.675rem 1.25rem;
+  border: 1px solid var(--separator);
+  transition: all 0.2s;
+}
+
+.secondary-btn:hover {
+  background: rgba(142, 142, 147, 0.18);
 }
 
 @media (max-width: 768px) {
@@ -842,10 +849,6 @@ function closeRecipeModal() {
 .header-buttons {
   display: flex;
   gap: 0.75rem;
-}
-
-.recipe-btn {
-  background: var(--ios-green);
 }
 
 .recipe-list {
