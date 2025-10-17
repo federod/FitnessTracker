@@ -153,15 +153,23 @@ function backToList() {
   margin-bottom: 1.5rem;
   padding: 0.875rem 1rem;
   font-size: 1rem;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background: var(--bg-light);
+  border: 2px solid var(--separator);
+  border-radius: 10px;
+  background: var(--card-bg);
   color: var(--text-primary);
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.search-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
 }
 
 .search-input:focus {
   outline: none;
   border-color: var(--ios-blue);
+  background: var(--bg-light);
 }
 
 .search-status {
