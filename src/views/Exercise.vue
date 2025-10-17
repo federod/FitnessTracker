@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useExerciseStore } from '@/stores/exerciseStore'
 import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
@@ -13,8 +13,16 @@ const exerciseForm = ref({
   type: 'cardio' as Exercise['type'],
   duration: 30,
   caloriesBurned: 0,
-  notes: ''
+  notes: '',
+  instructions: ''
 })
+
+const searchQuery = ref('')
+const selectedMuscle = ref('')
+const selectedDifficulty = ref('')
+const apiExercises = ref<any[]>([])
+const isSearching = ref(false)
+const searchError = ref('')
 
 const commonExercises = [
   { name: 'Running', type: 'cardio', caloriesPerMin: 10 },
@@ -29,7 +37,42 @@ const commonExercises = [
 
 onMounted(() => {
   exerciseStore.loadFromLocalStorage()
+  searchExercises() // Load initial exercises
 })
+
+// Watch for search changes
+watch([selectedMuscle, selectedDifficulty], () => {
+  searchExercises()
+})
+
+async function searchExercises() {
+  isSearching.value = true
+  searchError.value = ''
+
+  try {
+    const params = new URLSearchParams()
+    if (selectedMuscle.value) params.append('muscle', selectedMuscle.value)
+    if (selectedDifficulty.value) params.append('difficulty', selectedDifficulty.value)
+
+    // Limit to 10 exercises
+    params.append('offset', '0')
+
+    const response = await fetch(`/.netlify/functions/exercise-search?${params.toString()}`)
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Search failed')
+    }
+
+    apiExercises.value = data.exercises.slice(0, 10) // Limit to 10 results
+  } catch (error) {
+    console.error('Exercise search error:', error)
+    searchError.value = error instanceof Error ? error.message : 'Search failed'
+    apiExercises.value = []
+  } finally {
+    isSearching.value = false
+  }
+}
 
 const todaysExercises = computed(() => exerciseStore.getTodaysExercises())
 const totalCaloriesBurned = computed(() => exerciseStore.getTodaysCaloriesBurned())
@@ -41,6 +84,15 @@ function selectExercise(exercise: typeof commonExercises[0]) {
   exerciseForm.value.name = exercise.name
   exerciseForm.value.type = exercise.type as Exercise['type']
   updateCalories()
+}
+
+function selectApiExercise(exercise: any) {
+  exerciseForm.value.name = exercise.name
+  exerciseForm.value.type = exercise.type as Exercise['type']
+  exerciseForm.value.instructions = exercise.instructions || ''
+  // Estimate calories based on type
+  const caloriesPerMin = exercise.type === 'cardio' ? 10 : exercise.type === 'strength' ? 6 : 5
+  exerciseForm.value.caloriesBurned = Math.round(caloriesPerMin * exerciseForm.value.duration)
 }
 
 function updateCalories() {
@@ -71,8 +123,12 @@ function closeModal() {
     type: 'cardio',
     duration: 30,
     caloriesBurned: 0,
-    notes: ''
+    notes: '',
+    instructions: ''
   }
+  selectedMuscle.value = ''
+  selectedDifficulty.value = ''
+  searchError.value = ''
 }
 
 function removeExercise(id: string) {
@@ -169,6 +225,64 @@ function getExerciseIcon(type: Exercise['type']) {
             </div>
           </div>
 
+          <div class="api-search">
+            <h4>Search Exercises:</h4>
+            <div class="search-filters">
+              <div class="filter-group">
+                <label>Muscle Group:</label>
+                <select v-model="selectedMuscle">
+                  <option value="">All Muscles</option>
+                  <option value="abdominals">Abdominals</option>
+                  <option value="biceps">Biceps</option>
+                  <option value="calves">Calves</option>
+                  <option value="chest">Chest</option>
+                  <option value="forearms">Forearms</option>
+                  <option value="glutes">Glutes</option>
+                  <option value="hamstrings">Hamstrings</option>
+                  <option value="lats">Lats</option>
+                  <option value="lower_back">Lower Back</option>
+                  <option value="middle_back">Middle Back</option>
+                  <option value="quadriceps">Quadriceps</option>
+                  <option value="shoulders">Shoulders</option>
+                  <option value="triceps">Triceps</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Difficulty:</label>
+                <select v-model="selectedDifficulty">
+                  <option value="">All Levels</option>
+                  <option value="beginner">Beginner</option>
+                  <option value="intermediate">Intermediate</option>
+                  <option value="expert">Expert</option>
+                </select>
+              </div>
+            </div>
+
+            <div v-if="isSearching" class="search-loading">
+              Searching exercises...
+            </div>
+
+            <div v-if="searchError" class="search-error">
+              {{ searchError }}
+            </div>
+
+            <div v-if="apiExercises.length > 0 && !isSearching" class="api-results">
+              <div
+                v-for="exercise in apiExercises"
+                :key="exercise.name"
+                @click="selectApiExercise(exercise)"
+                class="api-exercise-item"
+                :class="{ selected: exerciseForm.name === exercise.name }"
+              >
+                <div class="api-exercise-name">{{ exercise.name }}</div>
+                <div class="api-exercise-meta">
+                  {{ exercise.type }} • {{ exercise.difficulty }}
+                  <span v-if="exercise.muscle"> • {{ exercise.muscle }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <form @submit.prevent="addExercise" class="exercise-form">
             <div class="form-group">
               <label>Exercise Name:</label>
@@ -209,6 +323,11 @@ function getExerciseIcon(type: Exercise['type']) {
             <div class="form-group">
               <label>Notes (optional):</label>
               <textarea v-model="exerciseForm.notes" rows="3"></textarea>
+            </div>
+
+            <div v-if="exerciseForm.instructions" class="form-group">
+              <label>Instructions:</label>
+              <div class="instructions-display">{{ exerciseForm.instructions }}</div>
             </div>
 
             <button type="submit">Add Exercise</button>
@@ -463,5 +582,113 @@ function getExerciseIcon(type: Exercise['type']) {
 
 textarea {
   resize: vertical;
+}
+
+.api-search {
+  margin-bottom: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--separator);
+}
+
+.api-search h4 {
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.search-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.search-loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.search-error {
+  background: var(--ios-red);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.api-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  background: var(--bg-light);
+  border-radius: 8px;
+}
+
+.api-exercise-item {
+  padding: 0.75rem;
+  background: var(--card-bg);
+  border: 2px solid var(--separator);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.api-exercise-item:hover {
+  border-color: var(--ios-blue);
+  background: var(--fill-tertiary);
+}
+
+.api-exercise-item.selected {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  color: white;
+}
+
+.api-exercise-item.selected .api-exercise-meta {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.api-exercise-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.api-exercise-meta {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.instructions-display {
+  background: var(--bg-light);
+  padding: 1rem;
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .search-filters {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

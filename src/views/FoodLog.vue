@@ -29,6 +29,13 @@ const customFood = ref({
   servingSize: ''
 })
 
+const showRecipeModal = ref(false)
+const recipeSearchQuery = ref('')
+const apiRecipes = ref<any[]>([])
+const isSearchingRecipes = ref(false)
+const recipeSearchError = ref('')
+const selectedRecipe = ref<any | null>(null)
+
 onMounted(() => {
   foodStore.loadFromLocalStorage()
   userStore.fetchProfile()
@@ -143,6 +150,47 @@ function addCustomFood() {
   }
   showCustomFoodModal.value = false
 }
+
+// Watch recipe search query
+watch(recipeSearchQuery, async (newQuery) => {
+  if (!newQuery || newQuery.length < 3) {
+    apiRecipes.value = []
+    recipeSearchError.value = ''
+    return
+  }
+
+  isSearchingRecipes.value = true
+  recipeSearchError.value = ''
+
+  try {
+    const response = await fetch(`/.netlify/functions/recipe-search?query=${encodeURIComponent(newQuery)}`)
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Recipe search failed')
+    }
+
+    apiRecipes.value = data.recipes.slice(0, 10) // Limit to 10 results
+  } catch (error) {
+    console.error('Recipe search error:', error)
+    recipeSearchError.value = error instanceof Error ? error.message : 'Recipe search failed'
+    apiRecipes.value = []
+  } finally {
+    isSearchingRecipes.value = false
+  }
+})
+
+function selectRecipe(recipe: any) {
+  selectedRecipe.value = recipe
+}
+
+function closeRecipeModal() {
+  showRecipeModal.value = false
+  selectedRecipe.value = null
+  recipeSearchQuery.value = ''
+  apiRecipes.value = []
+  recipeSearchError.value = ''
+}
 </script>
 
 <template>
@@ -152,9 +200,14 @@ function addCustomFood() {
       <div class="food-log">
         <header class="page-header">
           <h2>Food Log</h2>
-          <button @click="showCustomFoodModal = true" class="secondary-btn">
-            + Custom
-          </button>
+          <div class="header-buttons">
+            <button @click="showRecipeModal = true" class="secondary-btn recipe-btn">
+              📖 Recipes
+            </button>
+            <button @click="showCustomFoodModal = true" class="secondary-btn">
+              + Custom
+            </button>
+          </div>
         </header>
 
         <div class="card">
@@ -383,6 +436,66 @@ function addCustomFood() {
             </div>
             <button type="submit">Add Food</button>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recipe Search Modal -->
+    <div v-if="showRecipeModal" class="modal-overlay" @click="closeRecipeModal">
+      <div class="modal" @click.stop>
+        <div class="modal-header">
+          <h3>Recipe Search</h3>
+          <button @click="closeRecipeModal" class="close-btn">×</button>
+        </div>
+        <div class="modal-body">
+          <input
+            v-model="recipeSearchQuery"
+            type="text"
+            placeholder="Search recipes (type at least 3 characters)..."
+            class="search-input"
+          />
+
+          <div v-if="isSearchingRecipes" class="search-status">
+            <p>Searching recipes...</p>
+          </div>
+
+          <div v-if="recipeSearchError" class="search-error">
+            <p>{{ recipeSearchError }}</p>
+          </div>
+
+          <div v-if="!selectedRecipe && apiRecipes.length > 0" class="recipe-list">
+            <div
+              v-for="recipe in apiRecipes"
+              :key="recipe.title"
+              @click="selectRecipe(recipe)"
+              class="recipe-item"
+            >
+              <div class="recipe-title">{{ recipe.title }}</div>
+              <div class="recipe-servings">{{ recipe.servings }}</div>
+            </div>
+          </div>
+
+          <div v-if="selectedRecipe" class="selected-recipe">
+            <button @click="selectedRecipe = null" class="back-btn">← Back to list</button>
+            <div class="recipe-details">
+              <h4>{{ selectedRecipe.title }}</h4>
+              <p class="servings-info">{{ selectedRecipe.servings }}</p>
+
+              <div class="recipe-section">
+                <h5>Ingredients:</h5>
+                <ul class="ingredients-list">
+                  <li v-for="(ingredient, index) in selectedRecipe.ingredients.split('|')" :key="index">
+                    {{ ingredient.trim() }}
+                  </li>
+                </ul>
+              </div>
+
+              <div class="recipe-section">
+                <h5>Instructions:</h5>
+                <p class="instructions-text">{{ selectedRecipe.instructions }}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -724,5 +837,108 @@ function addCustomFood() {
 .form-group label {
   font-weight: 500;
   color: var(--text-primary);
+}
+
+.header-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.recipe-btn {
+  background: var(--ios-green);
+}
+
+.recipe-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.recipe-item {
+  padding: 1rem;
+  border: 2px solid var(--separator);
+  background: var(--card-bg);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recipe-item:hover {
+  border-color: var(--ios-blue);
+  background: var(--fill-tertiary);
+}
+
+.recipe-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: var(--text-primary);
+}
+
+.recipe-servings {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.selected-recipe {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.recipe-details h4 {
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.servings-info {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+.recipe-section {
+  margin-bottom: 1.5rem;
+}
+
+.recipe-section h5 {
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.ingredients-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ingredients-list li {
+  padding: 0.5rem;
+  background: var(--bg-light);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.ingredients-list li:before {
+  content: "• ";
+  color: var(--primary-color);
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+.instructions-text {
+  background: var(--bg-light);
+  padding: 1rem;
+  border-radius: 8px;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .header-buttons {
+    gap: 0.5rem;
+  }
 }
 </style>
