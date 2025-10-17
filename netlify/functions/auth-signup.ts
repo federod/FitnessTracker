@@ -1,8 +1,20 @@
 import type { Handler } from '@netlify/functions'
-import { getDb } from '../../src/db'
-import { users } from '../../src/db/schema'
+import { neon } from '@neondatabase/serverless'
+import { drizzle } from 'drizzle-orm/neon-http'
+import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
+import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+
+// Define users table inline
+const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  password: text('password').notNull(),
+  name: text('name').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
 
 export const handler: Handler = async (event) => {
   // Only allow POST requests
@@ -50,12 +62,12 @@ export const handler: Handler = async (event) => {
       }
     }
 
-    const db = getDb(databaseUrl)
+    const sql = neon(databaseUrl)
+    const db = drizzle(sql)
 
     // Check if user already exists
-    const existingUser = await db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.email, email.toLowerCase()),
-    })
+    const existingUsers = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1)
+    const existingUser = existingUsers[0]
 
     if (existingUser) {
       return {

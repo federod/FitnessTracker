@@ -1,6 +1,19 @@
 import type { Handler } from '@netlify/functions'
-import { getDb } from '../../src/db'
+import { neon } from '@neondatabase/serverless'
+import { drizzle } from 'drizzle-orm/neon-http'
+import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
+import { eq } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
+
+// Define users table inline
+const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  email: text('email').notNull().unique(),
+  password: text('password').notNull(),
+  name: text('name').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
 
 interface JWTPayload {
   userId: number
@@ -56,12 +69,12 @@ export const handler: Handler = async (event) => {
       }
     }
 
-    const db = getDb(databaseUrl)
+    const sql = neon(databaseUrl)
+    const db = drizzle(sql)
 
     // Get user from database
-    const user = await db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.id, decoded.userId),
-    })
+    const userResults = await db.select().from(users).where(eq(users.id, decoded.userId)).limit(1)
+    const user = userResults[0]
 
     if (!user) {
       return {
