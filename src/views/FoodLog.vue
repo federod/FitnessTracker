@@ -28,7 +28,7 @@ const customFood = ref({
 
 onMounted(() => {
   foodStore.loadFromLocalStorage()
-  userStore.loadFromLocalStorage()
+  userStore.fetchProfile()
 })
 
 const todaysSummary = computed(() => foodStore.getTodaysSummary())

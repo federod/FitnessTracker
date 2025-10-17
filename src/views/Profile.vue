@@ -1,22 +1,47 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useUserStore } from '@/stores/userStore'
+import { useAuthStore } from '@/stores/authStore'
 import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
 import type { UserProfile } from '@/types'
 
 const userStore = useUserStore()
+const authStore = useAuthStore()
 
-const profileForm = ref<UserProfile>({ ...userStore.profile })
-
-onMounted(() => {
-  userStore.loadFromLocalStorage()
-  profileForm.value = { ...userStore.profile }
+const profileForm = ref<UserProfile>({
+  name: authStore.user?.name || '',
+  age: 30,
+  gender: 'other',
+  height: 170,
+  weight: 70,
+  activityLevel: 'moderate',
+  goal: 'maintain',
+  targetWeight: 70
 })
 
-function saveProfile() {
-  userStore.updateProfile(profileForm.value)
-  alert('Profile saved successfully!')
+onMounted(async () => {
+  await userStore.fetchProfile()
+  if (userStore.profile) {
+    profileForm.value = { ...userStore.profile, name: authStore.user?.name || '' }
+  } else {
+    profileForm.value.name = authStore.user?.name || ''
+  }
+})
+
+watch(() => userStore.profile, (newProfile) => {
+  if (newProfile) {
+    profileForm.value = { ...newProfile, name: authStore.user?.name || '' }
+  }
+})
+
+async function saveProfile() {
+  await userStore.updateProfile(profileForm.value)
+  if (!userStore.error) {
+    alert('Profile saved successfully!')
+  } else {
+    alert('Error saving profile: ' + userStore.error)
+  }
 }
 
 function calculateBMI() {

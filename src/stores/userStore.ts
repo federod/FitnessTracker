@@ -1,21 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { UserProfile, DailyGoals } from '@/types'
+import { useAuthStore } from './authStore'
 
 export const useUserStore = defineStore('user', () => {
-  const profile = ref<UserProfile>({
-    name: 'User',
-    age: 30,
-    gender: 'other',
-    height: 170,
-    weight: 70,
-    activityLevel: 'moderate',
-    goal: 'maintain',
-    targetWeight: 70
-  })
+  const authStore = useAuthStore()
+  const profile = ref<UserProfile | null>(null)
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
 
   // Calculate BMR using Mifflin-St Jeor Equation
   const bmr = computed(() => {
+    if (!profile.value) return 0
     const { weight, height, age, gender } = profile.value
     if (gender === 'male') {
       return 10 * weight + 6.25 * height - 5 * age + 5
@@ -26,6 +22,7 @@ export const useUserStore = defineStore('user', () => {
 
   // Calculate TDEE (Total Daily Energy Expenditure)
   const tdee = computed(() => {
+    if (!profile.value) return 0
     const activityMultipliers = {
       'sedentary': 1.2,
       'light': 1.375,
@@ -38,6 +35,15 @@ export const useUserStore = defineStore('user', () => {
 
   // Calculate daily calorie goal based on weight goal
   const dailyGoals = computed<DailyGoals>(() => {
+    if (!profile.value) {
+      return {
+        calories: 2000,
+        protein: 150,
+        carbs: 200,
+        fat: 67
+      }
+    }
+
     let calorieGoal = tdee.value
 
     if (profile.value.goal === 'lose') {
@@ -55,19 +61,64 @@ export const useUserStore = defineStore('user', () => {
     }
   })
 
-  function updateProfile(updates: Partial<UserProfile>) {
-    profile.value = { ...profile.value, ...updates }
-    saveToLocalStorage()
+  async function fetchProfile() {
+    if (!authStore.token) return
+
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await fetch('/.netlify/functions/profile-get', {
+        headers: {
+          'Authorization': `Bearer ${authStore.token}`,
+        },
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch profile')
+      }
+
+      profile.value = data.profile
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to fetch profile'
+      console.error('Fetch profile error:', err)
+    } finally {
+      isLoading.value = false
+    }
   }
 
-  function saveToLocalStorage() {
-    localStorage.setItem('userProfile', JSON.stringify(profile.value))
-  }
+  async function updateProfile(updates: Partial<UserProfile>) {
+    if (!authStore.token) return
 
-  function loadFromLocalStorage() {
-    const saved = localStorage.getItem('userProfile')
-    if (saved) {
-      profile.value = JSON.parse(saved)
+    isLoading.value = true
+    error.value = null
+
+    const profileData = profile.value ? { ...profile.value, ...updates } : updates
+
+    try {
+      const response = await fetch('/.netlify/functions/profile-update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authStore.token}`,
+        },
+        body: JSON.stringify(profileData),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update profile')
+      }
+
+      profile.value = data.profile
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to update profile'
+      console.error('Update profile error:', err)
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -76,7 +127,9 @@ export const useUserStore = defineStore('user', () => {
     dailyGoals,
     bmr,
     tdee,
+    isLoading,
+    error,
+    fetchProfile,
     updateProfile,
-    loadFromLocalStorage
   }
 })

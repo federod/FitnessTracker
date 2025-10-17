@@ -12,8 +12,8 @@ const userStore = useUserStore()
 const exerciseStore = useExerciseStore()
 
 onMounted(() => {
+  userStore.fetchProfile()
   foodStore.loadFromLocalStorage()
-  userStore.loadFromLocalStorage()
   exerciseStore.loadFromLocalStorage()
 })
 
