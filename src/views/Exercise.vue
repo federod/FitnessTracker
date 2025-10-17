@@ -210,21 +210,6 @@ function getExerciseIcon(type: Exercise['type']) {
           <button @click="closeModal" class="close-btn">×</button>
         </div>
         <div class="modal-body">
-          <div class="quick-select">
-            <h4>Quick Select:</h4>
-            <div class="exercise-buttons">
-              <button
-                v-for="exercise in commonExercises"
-                :key="exercise.name"
-                @click="selectExercise(exercise)"
-                class="exercise-quick-btn"
-                :class="{ selected: exerciseForm.name === exercise.name }"
-              >
-                {{ exercise.name }}
-              </button>
-            </div>
-          </div>
-
           <div class="api-search">
             <h4>Search Exercises:</h4>
             <div class="search-filters">
@@ -280,6 +265,21 @@ function getExerciseIcon(type: Exercise['type']) {
                   <span v-if="exercise.muscle"> • {{ exercise.muscle }}</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div class="quick-select">
+            <h4>Quick Select:</h4>
+            <div class="exercise-buttons">
+              <button
+                v-for="exercise in commonExercises"
+                :key="exercise.name"
+                @click="selectExercise(exercise)"
+                class="exercise-quick-btn"
+                :class="{ selected: exerciseForm.name === exercise.name }"
+              >
+                {{ exercise.name }}
+              </button>
             </div>
           </div>
 
@@ -528,6 +528,8 @@ function getExerciseIcon(type: Exercise['type']) {
 
 .quick-select {
   margin-bottom: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--separator);
 }
 
 .quick-select h4 {
@@ -586,8 +588,6 @@ textarea {
 
 .api-search {
   margin-bottom: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--separator);
 }
 
 .api-search h4 {
