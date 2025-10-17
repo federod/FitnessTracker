@@ -1,19 +1,6 @@
 import { neon } from '@neondatabase/serverless'
-import { drizzle } from 'drizzle-orm/neon-http'
-import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
-import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-
-// Define users table
-const users = pgTable('users', {
-  id: serial('id').primaryKey(),
-  email: text('email').notNull().unique(),
-  password: text('password').notNull(),
-  name: text('name').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-})
 
 export const handler = async (event) => {
   // Handle CORS preflight
@@ -95,13 +82,16 @@ export const handler = async (event) => {
     }
 
     const sql = neon(databaseUrl)
-    const db = drizzle(sql)
 
     // Check if user already exists
-    const existingUsers = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1)
-    const existingUser = existingUsers[0]
+    const existingUsers = await sql`
+      SELECT id, email, name, created_at
+      FROM users
+      WHERE email = ${email.toLowerCase()}
+      LIMIT 1
+    `
 
-    if (existingUser) {
+    if (existingUsers.length > 0) {
       return {
         statusCode: 409,
         body: JSON.stringify({ error: 'User already exists' }),
@@ -116,19 +106,11 @@ export const handler = async (event) => {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     // Create user
-    const newUsers = await db
-      .insert(users)
-      .values({
-        email: email.toLowerCase(),
-        password: hashedPassword,
-        name,
-      })
-      .returning({
-        id: users.id,
-        email: users.email,
-        name: users.name,
-        createdAt: users.createdAt,
-      })
+    const newUsers = await sql`
+      INSERT INTO users (email, password, name, created_at, updated_at)
+      VALUES (${email.toLowerCase()}, ${hashedPassword}, ${name}, NOW(), NOW())
+      RETURNING id, email, name, created_at
+    `
 
     const newUser = newUsers[0]
 
