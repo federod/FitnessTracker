@@ -93,17 +93,20 @@ function handleLogout() {
   gap: 0.375rem;
   margin: 0;
   padding: 0;
+  align-items: center;
 }
 
 .nav-links li {
   margin: 0;
+  display: flex;
+  align-items: center;
 }
 
 .nav-links a,
 .logout-btn {
   color: var(--text-secondary);
   text-decoration: none;
-  padding: 0.375rem 0.75rem;
+  padding: 0.5rem 0.875rem;
   border-radius: 8px;
   transition: all 0.15s ease;
   font-weight: 500;
@@ -112,7 +115,11 @@ function handleLogout() {
   background: transparent;
   border: none;
   cursor: pointer;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  line-height: 1;
 }
 
 .nav-links a:hover,
