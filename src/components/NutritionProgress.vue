@@ -7,10 +7,6 @@ const props = defineProps<{
   goals: DailyGoals
 }>()
 
-const caloriesPercentage = computed(() => {
-  return Math.min((props.current.calories / props.goals.calories) * 100, 100)
-})
-
 const proteinPercentage = computed(() => {
   return Math.min((props.current.protein / props.goals.protein) * 100, 100)
 })

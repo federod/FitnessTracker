@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import type { FoodEntry, FoodItem, NutritionSummary } from '@/types'
 
 export const useFoodStore = defineStore('food', () => {
