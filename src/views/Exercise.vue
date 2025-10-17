@@ -8,6 +8,7 @@ import type { Exercise } from '@/types'
 const exerciseStore = useExerciseStore()
 
 const showAddModal = ref(false)
+const savedRuns = ref<any[]>([])
 const exerciseForm = ref({
   name: '',
   type: 'cardio' as Exercise['type'],
@@ -37,7 +38,41 @@ const commonExercises = [
 onMounted(() => {
   exerciseStore.loadFromLocalStorage()
   searchExercises() // Load initial exercises
+  loadSavedRuns()
 })
+
+function loadSavedRuns() {
+  const runs = JSON.parse(localStorage.getItem('runs') || '[]')
+  savedRuns.value = runs.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+}
+
+function deleteRun(runId: string) {
+  if (confirm('Are you sure you want to delete this run?')) {
+    const runs = JSON.parse(localStorage.getItem('runs') || '[]')
+    const filtered = runs.filter((r: any) => r.id !== runId)
+    localStorage.setItem('runs', JSON.stringify(filtered))
+    loadSavedRuns()
+  }
+}
+
+function formatRunDate(dateString: string) {
+  const date = new Date(dateString)
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const runDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+
+  if (runDate.getTime() === today.getTime()) {
+    return 'Today'
+  }
+
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (runDate.getTime() === yesterday.getTime()) {
+    return 'Yesterday'
+  }
+
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
 
 // Watch for search changes
 watch([selectedMuscle, selectedDifficulty], () => {
@@ -194,6 +229,27 @@ function getExerciseIcon(type: Exercise['type']) {
                 {{ exercise.caloriesBurned }} cal
               </div>
               <button @click="removeExercise(exercise.id)" class="delete-btn">×</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Saved Runs Section -->
+        <div v-if="savedRuns.length > 0" class="card saved-runs">
+          <h3>Running History</h3>
+          <div class="run-entries">
+            <div v-for="run in savedRuns" :key="run.id" class="run-entry">
+              <div class="run-icon">🏃</div>
+              <div class="run-info">
+                <div class="run-title">Running</div>
+                <div class="run-details">
+                  {{ formatRunDate(run.date) }} • {{ (run.distance / 1000).toFixed(2) }} km • {{ run.pace }} min/km
+                </div>
+              </div>
+              <div class="run-stats">
+                <div class="run-calories">{{ run.calories }} cal</div>
+                <div class="run-duration">{{ Math.floor(run.duration / 60) }} min</div>
+              </div>
+              <button @click="deleteRun(run.id)" class="delete-btn">×</button>
             </div>
           </div>
         </div>
@@ -393,8 +449,64 @@ function getExerciseIcon(type: Exercise['type']) {
   font-size: 0.9rem;
 }
 
-.exercises-list h3 {
+.exercises-list h3,
+.saved-runs h3 {
   margin-bottom: 1.5rem;
+}
+
+.saved-runs {
+  margin-top: 1.5rem;
+}
+
+.run-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.run-entry {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: var(--bg-light);
+  border-radius: 8px;
+  gap: 1rem;
+}
+
+.run-icon {
+  font-size: 2rem;
+}
+
+.run-info {
+  flex: 1;
+}
+
+.run-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.run-details {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.run-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.run-calories {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 1.1rem;
+}
+
+.run-duration {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
 }
 
 .empty-state {
