@@ -80,7 +80,7 @@ function initMap() {
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors',
     maxZoom: 19
-  }).addTo(map.value)
+  }).addTo(map.value as any)
 
   // Fix Leaflet's default icon path issue
   delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -114,7 +114,7 @@ async function checkLocationPermission() {
 
       // Add marker for current position
       currentMarker.value = L.marker([position.coords.latitude, position.coords.longitude])
-        .addTo(map.value)
+        .addTo(map.value as any)
         .bindPopup('You are here')
     }
   } catch (error: any) {
@@ -141,7 +141,7 @@ function startTracking() {
 
   // Clear previous route
   if (routePolyline.value && map.value) {
-    map.value.removeLayer(routePolyline.value)
+    (map.value as any).removeLayer(routePolyline.value)
     routePolyline.value = null
   }
 
@@ -175,7 +175,7 @@ function startTracking() {
           routePolyline.value = L.polyline(
             positions.value.map(p => [p.lat, p.lng]),
             { color: 'blue', weight: 4 }
-          ).addTo(map.value)
+          ).addTo(map.value as any)
         } else if (routePolyline.value) {
           routePolyline.value.setLatLngs(positions.value.map(p => [p.lat, p.lng]))
         }
@@ -283,7 +283,7 @@ function resetTracking() {
   pausedTime.value = 0
 
   if (routePolyline.value && map.value) {
-    map.value.removeLayer(routePolyline.value)
+    (map.value as any).removeLayer(routePolyline.value)
     routePolyline.value = null
   }
 }
