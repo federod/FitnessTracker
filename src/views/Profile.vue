@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useUserStore } from '@/stores/userStore'
 import { useAuthStore } from '@/stores/authStore'
 import NavBar from '@/components/NavBar.vue'
@@ -8,6 +8,12 @@ import type { UserProfile } from '@/types'
 
 const userStore = useUserStore()
 const authStore = useAuthStore()
+const isEditingName = ref(false)
+const nameInput = ref('')
+
+const hasName = computed(() => {
+  return authStore.user?.name && authStore.user.name.trim().length > 0
+})
 
 const profileForm = ref<UserProfile>({
   name: authStore.user?.name || '',
@@ -81,6 +87,32 @@ function applyKetoPreset() {
   profileForm.value.customCarbs = Math.round((tdee * 0.05) / 4)
   profileForm.value.customFat = Math.round((tdee * 0.75) / 9)
 }
+
+function startEditingName() {
+  nameInput.value = authStore.user?.name || ''
+  isEditingName.value = true
+}
+
+async function saveName() {
+  if (!nameInput.value || nameInput.value.trim().length === 0) {
+    alert('Please enter your name')
+    return
+  }
+
+  const result = await authStore.updateName(nameInput.value.trim())
+  if (result.success) {
+    profileForm.value.name = nameInput.value.trim()
+    isEditingName.value = false
+    alert('Name updated successfully!')
+  } else {
+    alert('Error updating name: ' + (result.error || 'Unknown error'))
+  }
+}
+
+function cancelEditingName() {
+  isEditingName.value = false
+  nameInput.value = ''
+}
 </script>
 
 <template>
@@ -98,8 +130,22 @@ function applyKetoPreset() {
             <form @submit.prevent="saveProfile" class="profile-form">
               <div class="form-group">
                 <label>Name:</label>
-                <input v-model="profileForm.name" type="text" readonly class="readonly-input" />
-                <span class="help-text">Name is part of your account and cannot be changed here</span>
+                <div v-if="!isEditingName && hasName" class="name-display">
+                  <input v-model="profileForm.name" type="text" readonly class="readonly-input" />
+                  <button type="button" @click="startEditingName" class="edit-name-btn">Edit</button>
+                </div>
+                <div v-else-if="!isEditingName && !hasName" class="name-missing">
+                  <p class="warning-text">⚠️ Please set your name</p>
+                  <button type="button" @click="startEditingName" class="set-name-btn">Set Name</button>
+                </div>
+                <div v-else class="name-edit">
+                  <input v-model="nameInput" type="text" placeholder="Enter your name" class="name-input" />
+                  <div class="name-actions">
+                    <button type="button" @click="saveName" class="save-btn">Save</button>
+                    <button type="button" @click="cancelEditingName" class="cancel-btn">Cancel</button>
+                  </div>
+                </div>
+                <span v-if="hasName && !isEditingName" class="help-text">Name is part of your account</span>
               </div>
 
               <div class="form-row">
@@ -496,6 +542,121 @@ function applyKetoPreset() {
   background: var(--fill-tertiary);
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.name-display {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.name-display input {
+  flex: 1;
+}
+
+.edit-name-btn {
+  padding: 0.5rem 1rem;
+  background: var(--ios-blue);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.edit-name-btn:hover {
+  opacity: 0.8;
+}
+
+.name-missing {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.warning-text {
+  color: var(--ios-red);
+  font-weight: 500;
+  margin: 0;
+}
+
+.set-name-btn {
+  padding: 0.75rem 1rem;
+  background: var(--ios-blue);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.set-name-btn:hover {
+  opacity: 0.8;
+}
+
+.name-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.name-input {
+  padding: 0.75rem;
+  border: 2px solid var(--ios-blue);
+  border-radius: 8px;
+  font-size: 16px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+.name-input:focus {
+  outline: none;
+  border-color: var(--ios-blue);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.name-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.save-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: var(--ios-green);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-btn:hover {
+  opacity: 0.8;
+}
+
+.cancel-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: var(--ios-red);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  opacity: 0.8;
 }
 
 @media (max-width: 768px) {

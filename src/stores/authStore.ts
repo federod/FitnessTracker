@@ -144,6 +144,41 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Update user name
+  async function updateName(name: string) {
+    if (!token.value) return { success: false, error: 'Not authenticated' }
+
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await fetch('/.netlify/functions/user-update-name', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token.value}`,
+        },
+        body: JSON.stringify({ name }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update name')
+      }
+
+      user.value = data.user
+      saveToStorage()
+
+      return { success: true }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to update name'
+      return { success: false, error: error.value }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   // Check if user is authenticated
   const isAuthenticated = () => {
     return !!token.value && !!user.value
@@ -161,6 +196,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     fetchCurrentUser,
+    updateName,
     isAuthenticated,
   }
 })
