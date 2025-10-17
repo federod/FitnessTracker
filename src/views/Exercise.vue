@@ -363,13 +363,14 @@ function getExerciseIcon(type: Exercise['type']) {
 }
 
 .modal {
-  background: white;
-  border-radius: 8px;
+  background: var(--card-bg);
+  border-radius: 12px;
   max-width: 600px;
   width: 100%;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 .modal-header {
@@ -382,6 +383,7 @@ function getExerciseIcon(type: Exercise['type']) {
 
 .modal-header h3 {
   margin: 0;
+  color: var(--text-primary);
 }
 
 .close-btn {
@@ -409,6 +411,7 @@ function getExerciseIcon(type: Exercise['type']) {
 
 .quick-select h4 {
   margin-bottom: 1rem;
+  color: var(--text-primary);
 }
 
 .exercise-buttons {
@@ -419,17 +422,18 @@ function getExerciseIcon(type: Exercise['type']) {
 
 .exercise-quick-btn {
   padding: 0.75rem;
-  background: white;
-  border: 2px solid var(--border-color);
-  border-radius: 6px;
+  background: var(--bg-light);
+  color: var(--text-primary);
+  border: 2px solid var(--separator);
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.2s;
 }
 
 .exercise-quick-btn:hover {
-  border-color: var(--primary-color);
-  background: var(--bg-light);
+  border-color: var(--ios-blue);
+  background: var(--fill-tertiary);
 }
 
 .exercise-quick-btn.selected {
@@ -452,6 +456,7 @@ function getExerciseIcon(type: Exercise['type']) {
 
 .form-group label {
   font-weight: 500;
+  color: var(--text-primary);
 }
 
 textarea {
