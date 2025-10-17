@@ -90,7 +90,27 @@ export const useUserStore = defineStore('user', () => {
         throw new Error(data.error || 'Failed to fetch profile')
       }
 
-      profile.value = data.profile
+      // Map snake_case from database to camelCase for frontend
+      if (data.profile) {
+        const dbProfile = data.profile
+        profile.value = {
+          name: authStore.user?.name || '',
+          age: dbProfile.age,
+          gender: dbProfile.gender,
+          height: dbProfile.height,
+          weight: dbProfile.weight,
+          activityLevel: dbProfile.activity_level,
+          goal: dbProfile.goal,
+          targetWeight: dbProfile.target_weight,
+          useCustomMacros: dbProfile.use_custom_macros === 1,
+          customCalories: dbProfile.custom_calories,
+          customProtein: dbProfile.custom_protein,
+          customCarbs: dbProfile.custom_carbs,
+          customFat: dbProfile.custom_fat,
+        }
+      } else {
+        profile.value = null
+      }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch profile'
       console.error('Fetch profile error:', err)
@@ -123,7 +143,25 @@ export const useUserStore = defineStore('user', () => {
         throw new Error(data.error || 'Failed to update profile')
       }
 
-      profile.value = data.profile
+      // Map snake_case from database to camelCase for frontend
+      if (data.profile) {
+        const dbProfile = data.profile
+        profile.value = {
+          name: authStore.user?.name || '',
+          age: dbProfile.age,
+          gender: dbProfile.gender,
+          height: dbProfile.height,
+          weight: dbProfile.weight,
+          activityLevel: dbProfile.activity_level,
+          goal: dbProfile.goal,
+          targetWeight: dbProfile.target_weight,
+          useCustomMacros: dbProfile.use_custom_macros === 1,
+          customCalories: dbProfile.custom_calories,
+          customProtein: dbProfile.custom_protein,
+          customCarbs: dbProfile.custom_carbs,
+          customFat: dbProfile.custom_fat,
+        }
+      }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to update profile'
       console.error('Update profile error:', err)
