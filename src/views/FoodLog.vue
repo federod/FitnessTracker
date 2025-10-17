@@ -489,14 +489,15 @@ function addCustomFood() {
 }
 
 .modal {
-  background: var(--card-bg);
+  background: var(--modal-bg);
+  border: 1px solid var(--separator-opaque);
   border-radius: 12px;
   max-width: 600px;
   width: 100%;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
 }
 
 .modal-header {

@@ -13,6 +13,7 @@
   --bg-secondary: #f2f2f7;
   --bg-tertiary: #ffffff;
   --bg-elevated: #ffffff;
+  --modal-bg: #ffffff;
 
   --text-primary: #000000;
   --text-secondary: #3c3c43;
@@ -50,6 +51,7 @@
   --bg-secondary: #1c1c1e;
   --bg-tertiary: #2c2c2e;
   --bg-elevated: #1c1c1e;
+  --modal-bg: #2c2c2e;
 
   --text-primary: #ffffff;
   --text-secondary: #ebebf5;
