@@ -41,7 +41,9 @@ watch(() => userStore.profile, (newProfile) => {
 })
 
 async function saveProfile() {
-  await userStore.updateProfile(profileForm.value)
+  // Exclude name from profile update (name is in users table, not user_profiles)
+  const { name, ...profileData } = profileForm.value
+  await userStore.updateProfile(profileData)
   if (!userStore.error) {
     alert('Profile saved successfully!')
   } else {
@@ -96,7 +98,8 @@ function applyKetoPreset() {
             <form @submit.prevent="saveProfile" class="profile-form">
               <div class="form-group">
                 <label>Name:</label>
-                <input v-model="profileForm.name" type="text" required />
+                <input v-model="profileForm.name" type="text" readonly class="readonly-input" />
+                <span class="help-text">Name is part of your account and cannot be changed here</span>
               </div>
 
               <div class="form-row">
@@ -487,6 +490,12 @@ function applyKetoPreset() {
 
 .preset-btn:active {
   transform: scale(0.98);
+}
+
+.readonly-input {
+  background: var(--fill-tertiary);
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 @media (max-width: 768px) {
