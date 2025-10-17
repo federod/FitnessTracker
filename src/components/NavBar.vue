@@ -37,6 +37,11 @@ function handleLogout() {
             </RouterLink>
           </li>
           <li>
+            <RouterLink to="/recipes" :class="{ active: route.name === 'recipes' }">
+              Recipes
+            </RouterLink>
+          </li>
+          <li>
             <RouterLink to="/profile" :class="{ active: route.name === 'profile' }">
               Profile
             </RouterLink>
