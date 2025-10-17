@@ -1,4 +1,3 @@
-import type { Handler } from '@netlify/functions'
 import { neon } from '@neondatabase/serverless'
 import { drizzle } from 'drizzle-orm/neon-http'
 import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
@@ -6,7 +5,7 @@ import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
-// Define users table inline
+// Define users table
 const users = pgTable('users', {
   id: serial('id').primaryKey(),
   email: text('email').notNull().unique(),
@@ -16,20 +15,8 @@ const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
-export const handler: Handler = async (event) => {
-  // Only allow POST requests
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    }
-  }
-
-  // Handle OPTIONS request for CORS
+export const handler = async (event) => {
+  // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -42,6 +29,18 @@ export const handler: Handler = async (event) => {
     }
   }
 
+  // Only allow POST requests
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method not allowed' }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    }
+  }
+
   try {
     const { email, password, name } = JSON.parse(event.body || '{}')
 
@@ -50,6 +49,10 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Email, password, and name are required' }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
       }
     }
 
@@ -59,6 +62,10 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Invalid email format' }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
       }
     }
 
@@ -67,6 +74,10 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: 'Password must be at least 6 characters' }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
       }
     }
 
@@ -76,6 +87,10 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 500,
         body: JSON.stringify({ error: 'Database configuration error' }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
       }
     }
 
@@ -90,6 +105,10 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 409,
         body: JSON.stringify({ error: 'User already exists' }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
       }
     }
 
@@ -97,7 +116,7 @@ export const handler: Handler = async (event) => {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     // Create user
-    const [newUser] = await db
+    const newUsers = await db
       .insert(users)
       .values({
         email: email.toLowerCase(),
@@ -111,12 +130,18 @@ export const handler: Handler = async (event) => {
         createdAt: users.createdAt,
       })
 
+    const newUser = newUsers[0]
+
     // Generate JWT token
     const jwtSecret = process.env.JWT_SECRET
     if (!jwtSecret) {
       return {
         statusCode: 500,
         body: JSON.stringify({ error: 'JWT configuration error' }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
       }
     }
 
@@ -143,10 +168,12 @@ export const handler: Handler = async (event) => {
       statusCode: 500,
       body: JSON.stringify({
         error: 'Internal server error',
-        details: error instanceof Error ? error.message : String(error)
+        details: error.message || String(error),
+        stack: error.stack
       }),
       headers: {
         'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
       },
     }
   }
