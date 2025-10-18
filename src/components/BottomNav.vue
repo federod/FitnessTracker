@@ -7,6 +7,7 @@ const navItems = [
   { name: 'dashboard', path: '/', icon: '📊', label: 'Home' },
   { name: 'food-log', path: '/food-log', icon: '🍽️', label: 'Food' },
   { name: 'exercise', path: '/exercise', icon: '💪', label: 'Exercise' },
+  { name: 'running', path: '/running', icon: '🏃', label: 'Running' },
   { name: 'profile', path: '/profile', icon: '👤', label: 'Profile' }
 ]
 </script>
