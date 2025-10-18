@@ -91,21 +91,27 @@ async function searchExercises() {
   searchError.value = ''
 
   try {
-    const params = new URLSearchParams()
-    if (selectedMuscle.value) params.append('muscle', selectedMuscle.value)
-    if (selectedDifficulty.value) params.append('difficulty', selectedDifficulty.value)
+    const response = await fetch('/.netlify/functions/claude-exercise', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        muscle: selectedMuscle.value,
+        difficulty: selectedDifficulty.value
+      })
+    })
 
-    const response = await fetch(`/.netlify/functions/exercise-search?${params.toString()}`)
     const data = await response.json()
 
     if (!response.ok) {
       throw new Error(data.error || 'Search failed')
     }
 
-    apiExercises.value = data.exercises.slice(0, 10) // Limit to 10 results
+    apiExercises.value = data.exercises
   } catch (error) {
     console.error('Exercise search error:', error)
-    searchError.value = error instanceof Error ? error.message : 'Search failed'
+    searchError.value = error instanceof Error ? error.message : 'Exercise search temporarily unavailable. Please use the Quick Select options below.'
     apiExercises.value = []
   } finally {
     isSearching.value = false

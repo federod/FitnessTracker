@@ -21,17 +21,24 @@ watch(recipeSearchQuery, async (newQuery) => {
   recipeSearchError.value = ''
 
   try {
-    const response = await fetch(`/.netlify/functions/recipe-search?query=${encodeURIComponent(newQuery)}`)
+    const response = await fetch('/.netlify/functions/claude-recipe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query: newQuery })
+    })
+
     const data = await response.json()
 
     if (!response.ok) {
       throw new Error(data.error || 'Recipe search failed')
     }
 
-    apiRecipes.value = data.recipes.slice(0, 10) // Limit to 10 results
+    apiRecipes.value = data.recipes
   } catch (error) {
     console.error('Recipe search error:', error)
-    recipeSearchError.value = error instanceof Error ? error.message : 'Recipe search failed'
+    recipeSearchError.value = error instanceof Error ? error.message : 'Recipe search temporarily unavailable'
     apiRecipes.value = []
   } finally {
     isSearchingRecipes.value = false

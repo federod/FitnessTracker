@@ -50,7 +50,7 @@ const filteredFoods = computed(() => {
   )
 })
 
-// Watch search query and call Ninja API
+// Watch search query and call Claude API
 watch(searchQuery, async (newQuery) => {
   if (!newQuery || newQuery.length < 3) {
     apiResults.value = []
@@ -62,26 +62,34 @@ watch(searchQuery, async (newQuery) => {
   searchError.value = ''
 
   try {
-    const response = await fetch(`/.netlify/functions/nutrition-search?query=${encodeURIComponent(newQuery)}`)
+    const response = await fetch('/.netlify/functions/claude-nutrition', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ foodQuery: newQuery })
+    })
+
     const data = await response.json()
 
     if (!response.ok) {
       throw new Error(data.error || 'Search failed')
     }
 
-    // Convert Ninja API format to our FoodItem format
-    apiResults.value = data.items.map((item: any, index: number) => ({
-      id: `api-${Date.now()}-${index}`,
-      name: item.name,
-      calories: Math.round(item.calories),
-      protein: Math.round(item.protein_g * 10) / 10,
-      carbs: Math.round(item.carbohydrates_total_g * 10) / 10,
-      fat: Math.round(item.fat_total_g * 10) / 10,
-      servingSize: `${item.serving_size_g}g`
-    }))
+    // Convert Claude API response to our FoodItem format
+    const nutrition = data.nutrition
+    apiResults.value = [{
+      id: `api-${Date.now()}`,
+      name: nutrition.name,
+      calories: nutrition.calories,
+      protein: nutrition.protein,
+      carbs: nutrition.carbs,
+      fat: nutrition.fat,
+      servingSize: nutrition.serving_size
+    }]
   } catch (error) {
     console.error('Search error:', error)
-    searchError.value = error instanceof Error ? error.message : 'Search failed'
+    searchError.value = error instanceof Error ? error.message : 'Nutrition search temporarily unavailable'
     apiResults.value = []
   } finally {
     isSearching.value = false
