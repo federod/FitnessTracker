@@ -50,17 +50,24 @@ export const handler = async (event) => {
 
     // Call Ninja API Exercises endpoint
     const url = `https://api.api-ninjas.com/v1/exercises${params.toString() ? '?' + params.toString() : ''}`
+    console.log('Calling Ninja API:', url)
+
     const response = await fetch(url, {
       headers: {
         'X-Api-Key': apiKey,
       },
     })
 
+    console.log('Ninja API response status:', response.status)
+
     if (!response.ok) {
-      throw new Error(`Ninja API error: ${response.statusText}`)
+      const errorText = await response.text()
+      console.error('Ninja API error response:', errorText)
+      throw new Error(`Ninja API error: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
+    console.log('Ninja API returned exercises:', data.length)
 
     return {
       statusCode: 200,

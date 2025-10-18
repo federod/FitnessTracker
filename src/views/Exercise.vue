@@ -307,7 +307,7 @@ function getExerciseIcon(type: Exercise['type']) {
             </div>
 
             <div v-if="searchError" class="search-error">
-              {{ searchError }}
+              Exercise search temporarily unavailable. Please use the Quick Select options below.
             </div>
 
             <div v-if="apiExercises.length > 0 && !isSearching" class="api-results">
@@ -737,11 +737,14 @@ textarea {
 }
 
 .search-error {
-  background: var(--ios-red);
-  color: white;
+  background: var(--fill-tertiary);
+  color: var(--text-secondary);
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  font-style: italic;
 }
 
 .api-results {
