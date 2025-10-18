@@ -2,8 +2,13 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
+import { useUserStore } from '@/stores/userStore'
+import { useExerciseStore } from '@/stores/exerciseStore'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+
+const userStore = useUserStore()
+const exerciseStore = useExerciseStore()
 
 interface Position {
   lat: number
@@ -53,12 +58,46 @@ const pace = computed(() => {
 })
 
 const caloriesBurned = computed(() => {
-  // Rough estimate: 60 calories per km for running
-  const km = distance.value / 1000
-  return Math.round(km * 60)
+  // Use MET (Metabolic Equivalent of Task) formula for accurate calorie calculation
+  // Calories = MET × Weight(kg) × Duration(hours)
+
+  if (duration.value === 0 || !userStore.profile) {
+    // Fallback to simple estimate if no profile data
+    const km = distance.value / 1000
+    return Math.round(km * 60)
+  }
+
+  // Calculate MET based on pace (min/km)
+  const paceValue = pace.value
+  const [paceMin, paceSec] = paceValue.split(':').map(Number)
+  const paceMinPerKm = paceMin + (paceSec / 60)
+
+  // MET values based on running speed:
+  // Walking (>12 min/km): 3.5
+  // Jogging (8-12 min/km): 7.0
+  // Running (6-8 min/km): 9.8
+  // Fast running (5-6 min/km): 11.0
+  // Very fast (4-5 min/km): 12.8
+  // Sprint (<4 min/km): 14.5
+  let met: number
+  if (paceMinPerKm > 12) met = 3.5
+  else if (paceMinPerKm > 8) met = 7.0
+  else if (paceMinPerKm > 6) met = 9.8
+  else if (paceMinPerKm > 5) met = 11.0
+  else if (paceMinPerKm > 4) met = 12.8
+  else met = 14.5
+
+  const weight = userStore.profile.weight
+  const durationHours = duration.value / 3600
+
+  return Math.round(met * weight * durationHours)
 })
 
-onMounted(() => {
+onMounted(async () => {
+  // Load user profile for accurate calorie calculation
+  if (!userStore.profile) {
+    await userStore.fetchProfile()
+  }
   initMap()
   checkLocationPermission()
 })
@@ -257,6 +296,9 @@ function getDistanceBetweenPoints(pos1: Position, pos2: Position): number {
 }
 
 function saveRun() {
+  const today = new Date().toISOString().split('T')[0]
+  const durationMinutes = Math.floor(duration.value / 60)
+
   const run = {
     id: Date.now().toString(),
     date: new Date().toISOString(),
@@ -267,9 +309,20 @@ function saveRun() {
     positions: positions.value
   }
 
+  // Save to running history
   const runs = JSON.parse(localStorage.getItem('runs') || '[]')
   runs.push(run)
   localStorage.setItem('runs', JSON.stringify(runs))
+
+  // Add to exercise log for daily stats
+  exerciseStore.addExercise({
+    name: `Running - ${distanceKm.value} km`,
+    type: 'cardio',
+    duration: durationMinutes,
+    caloriesBurned: caloriesBurned.value,
+    date: today,
+    notes: `Pace: ${pace.value} min/km`
+  })
 
   alert(`Run saved! ${distanceKm.value} km in ${durationFormatted.value}`)
 }
