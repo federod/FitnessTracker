@@ -37,8 +37,8 @@ const commonExercises = [
 
 onMounted(() => {
   exerciseStore.loadFromLocalStorage()
-  searchExercises() // Load initial exercises
   loadSavedRuns()
+  // Don't load exercises on mount - only when user selects filters
 })
 
 function loadSavedRuns() {
@@ -80,6 +80,13 @@ watch([selectedMuscle, selectedDifficulty], () => {
 })
 
 async function searchExercises() {
+  // Only search if at least one filter is selected
+  if (!selectedMuscle.value && !selectedDifficulty.value) {
+    apiExercises.value = []
+    searchError.value = ''
+    return
+  }
+
   isSearching.value = true
   searchError.value = ''
 
@@ -87,9 +94,6 @@ async function searchExercises() {
     const params = new URLSearchParams()
     if (selectedMuscle.value) params.append('muscle', selectedMuscle.value)
     if (selectedDifficulty.value) params.append('difficulty', selectedDifficulty.value)
-
-    // Limit to 10 exercises
-    params.append('offset', '0')
 
     const response = await fetch(`/.netlify/functions/exercise-search?${params.toString()}`)
     const data = await response.json()
