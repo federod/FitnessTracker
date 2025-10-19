@@ -65,6 +65,15 @@ export const handler = async (event) => {
             role: 'user',
             content: `Find 10 recipes related to: "${query}"
 
+IMPORTANT DIETARY GUIDELINES:
+- If the query mentions "keto", "ketogenic", or "low carb": Focus on high-fat, very low-carb recipes (under 10g net carbs per serving)
+- If the query mentions "carnivore": ONLY animal products - meat, fish, eggs, dairy. NO plants, vegetables, or fruits
+- If the query mentions "paleo": No grains, legumes, or dairy. Focus on meat, fish, vegetables, fruits, nuts
+- If the query mentions "vegan": NO animal products at all
+- If the query mentions "vegetarian": No meat or fish, but dairy and eggs allowed
+- If the query mentions "high protein": Each recipe should have 30g+ protein per serving
+- If the query mentions "healthy" or "clean": Whole foods, minimal processing, no added sugars
+
 Provide a JSON array of exactly 10 recipes with the following structure:
 [
   {
@@ -75,7 +84,8 @@ Provide a JSON array of exactly 10 recipes with the following structure:
   }
 ]
 
-Make the recipes practical and realistic. Separate ingredients with | character.
+Make the recipes practical, realistic, and STRICTLY follow any dietary restrictions mentioned.
+Separate ingredients with | character.
 Only respond with valid JSON array, no other text.`
           }
         ]
