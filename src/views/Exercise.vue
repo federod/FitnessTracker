@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useExerciseStore } from '@/stores/exerciseStore'
+import { useUserStore } from '@/stores/userStore'
 import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
 import type { Exercise } from '@/types'
 
 const exerciseStore = useExerciseStore()
+const userStore = useUserStore()
 
 const showAddModal = ref(false)
 const savedRuns = ref<any[]>([])
@@ -24,22 +26,48 @@ const apiExercises = ref<any[]>([])
 const isSearching = ref(false)
 const searchError = ref('')
 
+// MET (Metabolic Equivalent of Task) values for common exercises
+// MET = ratio of work metabolic rate to resting metabolic rate
+// Calories = MET * weight(kg) * duration(hours)
 const commonExercises = [
-  { name: 'Running', type: 'cardio', caloriesPerMin: 10 },
-  { name: 'Walking', type: 'cardio', caloriesPerMin: 4 },
-  { name: 'Cycling', type: 'cardio', caloriesPerMin: 8 },
-  { name: 'Swimming', type: 'cardio', caloriesPerMin: 9 },
-  { name: 'Weight Training', type: 'strength', caloriesPerMin: 6 },
-  { name: 'Yoga', type: 'flexibility', caloriesPerMin: 3 },
-  { name: 'HIIT', type: 'cardio', caloriesPerMin: 12 },
-  { name: 'Basketball', type: 'sports', caloriesPerMin: 8 }
+  { name: 'Running (6 mph)', type: 'cardio', met: 9.8 },
+  { name: 'Walking (3 mph)', type: 'cardio', met: 3.5 },
+  { name: 'Cycling (moderate)', type: 'cardio', met: 8.0 },
+  { name: 'Swimming (moderate)', type: 'cardio', met: 8.3 },
+  { name: 'Weight Training', type: 'strength', met: 6.0 },
+  { name: 'Yoga', type: 'flexibility', met: 2.5 },
+  { name: 'HIIT', type: 'cardio', met: 12.0 },
+  { name: 'Basketball', type: 'sports', met: 8.0 },
+  { name: 'Jump Rope', type: 'cardio', met: 11.0 },
+  { name: 'Rowing Machine', type: 'cardio', met: 7.0 }
 ]
 
-onMounted(() => {
+onMounted(async () => {
   exerciseStore.loadFromLocalStorage()
   loadSavedRuns()
+  // Load user profile for calorie calculations
+  await userStore.fetchProfile()
   // Don't load exercises on mount - only when user selects filters
 })
+
+// Calculate calories based on MET value and user profile
+function calculateCalories(met: number, durationMinutes: number): number {
+  const weight = userStore.profile?.weight || 70 // Default 70kg if no profile
+  const durationHours = durationMinutes / 60
+  // Formula: Calories = MET × weight(kg) × duration(hours)
+  return Math.round(met * weight * durationHours)
+}
+
+// Get MET value based on exercise type (for API exercises without MET)
+function getMETByType(type: string): number {
+  const metValues: Record<string, number> = {
+    cardio: 8.0,
+    strength: 6.0,
+    flexibility: 3.0,
+    sports: 7.0
+  }
+  return metValues[type] || 5.0
+}
 
 function loadSavedRuns() {
   const runs = JSON.parse(localStorage.getItem('runs') || '[]')
@@ -127,22 +155,28 @@ const totalDuration = computed(() =>
 function selectExercise(exercise: typeof commonExercises[0]) {
   exerciseForm.value.name = exercise.name
   exerciseForm.value.type = exercise.type as Exercise['type']
-  updateCalories()
+  // Calculate calories using MET value
+  exerciseForm.value.caloriesBurned = calculateCalories(exercise.met, exerciseForm.value.duration)
 }
 
 function selectApiExercise(exercise: any) {
   exerciseForm.value.name = exercise.name
   exerciseForm.value.type = exercise.type as Exercise['type']
   exerciseForm.value.instructions = exercise.instructions || ''
-  // Estimate calories based on type
-  const caloriesPerMin = exercise.type === 'cardio' ? 10 : exercise.type === 'strength' ? 6 : 5
-  exerciseForm.value.caloriesBurned = Math.round(caloriesPerMin * exerciseForm.value.duration)
+  // Calculate calories based on exercise type using MET values
+  const met = getMETByType(exercise.type)
+  exerciseForm.value.caloriesBurned = calculateCalories(met, exerciseForm.value.duration)
 }
 
 function updateCalories() {
+  // Find if this is a known exercise with MET value
   const exercise = commonExercises.find(ex => ex.name === exerciseForm.value.name)
   if (exercise) {
-    exerciseForm.value.caloriesBurned = Math.round(exercise.caloriesPerMin * exerciseForm.value.duration)
+    exerciseForm.value.caloriesBurned = calculateCalories(exercise.met, exerciseForm.value.duration)
+  } else {
+    // Use type-based MET value for unknown exercises
+    const met = getMETByType(exerciseForm.value.type)
+    exerciseForm.value.caloriesBurned = calculateCalories(met, exerciseForm.value.duration)
   }
 }
 
@@ -189,6 +223,48 @@ function getExerciseIcon(type: Exercise['type']) {
     sports: '⚽'
   }
   return icons[type]
+}
+
+// Get YouTube video ID for exercise tutorials
+function getVideoIdForExercise(exerciseName: string): string {
+  // Map of exercise names to curated YouTube tutorial video IDs
+  const videoMap: Record<string, string> = {
+    'Running (6 mph)': 'wRkeBVMQSgg', // Proper running form
+    'running': 'wRkeBVMQSgg',
+    'Walking (3 mph)': 'dvckr5L9DPQ', // Walking technique
+    'walking': 'dvckr5L9DPQ',
+    'Cycling (moderate)': 'EZdGe-EY06A', // Indoor cycling
+    'cycling': 'EZdGe-EY06A',
+    'Swimming (moderate)': 'Z8k2Xy5fZE8', // Swimming basics
+    'swimming': 'Z8k2Xy5fZE8',
+    'Weight Training': 'R6gZoAzAhCg', // Weight training basics
+    'weight training': 'R6gZoAzAhCg',
+    'Yoga': 'v7AYKMP6rOE', // Yoga for beginners
+    'yoga': 'v7AYKMP6rOE',
+    'HIIT': 'ml6cT4AZdqI', // HIIT workout
+    'hiit': 'ml6cT4AZdqI',
+    'Basketball': 'HZ8vZjpSQ4E', // Basketball basics
+    'basketball': 'HZ8vZjpSQ4E',
+    'Jump Rope': 'FJmRQ5iTXKE', // Jump rope tutorial
+    'jump rope': 'FJmRQ5iTXKE',
+    'Rowing Machine': '4OlIp0b1Yfs', // Rowing form
+    'rowing machine': '4OlIp0b1Yfs',
+    'Hammer Curl': 'zC3nLlEvin4', // Hammer curls
+    'hammer curl': 'zC3nLlEvin4',
+    'bicep curl': 'ykJmrZ5v0Oo',
+    'squat': 'YaXPRqUwItQ', // Proper squat form
+    'deadlift': 'op9kVnSso6Q',
+    'bench press': 'rT7DgCr-3pg',
+    'pull up': 'eGo4IYlbE5g',
+    'push up': 'IODxDxX7oi4',
+    'plank': '_L3gNaAVjQ4',
+    'burpee': 'dZgVxmf6jkA',
+    'lunge': 'QOVaHwm-Q6U'
+  }
+
+  // Try exact match first, then lowercase match
+  const lowerName = exerciseName.toLowerCase()
+  return videoMap[exerciseName] || videoMap[lowerName] || 'ml6cT4AZdqI' // Default to a general fitness video
 }
 </script>
 
@@ -348,6 +424,11 @@ function getExerciseIcon(type: Exercise['type']) {
             </div>
           </div>
 
+          <div v-if="userStore.profile" class="calorie-info">
+            <strong>ℹ️ Personalized Calorie Calculation</strong>
+            <p>Calories are calculated based on your weight ({{ userStore.profile.weight }}kg) using MET values. Change duration to see updated calories.</p>
+          </div>
+
           <form @submit.prevent="addExercise" class="exercise-form">
             <div class="form-group">
               <label>Exercise Name:</label>
@@ -391,8 +472,24 @@ function getExerciseIcon(type: Exercise['type']) {
             </div>
 
             <div v-if="exerciseForm.instructions" class="form-group">
-              <label>Instructions:</label>
-              <div class="instructions-display">{{ exerciseForm.instructions }}</div>
+              <label>How to Perform:</label>
+              <div class="instructions-display">
+                <p>{{ exerciseForm.instructions }}</p>
+              </div>
+            </div>
+
+            <div v-if="exerciseForm.name" class="form-group">
+              <label>Video Tutorial:</label>
+              <div class="video-tutorial">
+                <iframe
+                  :src="`https://www.youtube.com/embed/${getVideoIdForExercise(exerciseForm.name)}`"
+                  title="Exercise Tutorial"
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                  class="tutorial-video"
+                ></iframe>
+              </div>
             </div>
 
             <button type="submit">Add Exercise</button>
@@ -808,6 +905,45 @@ textarea {
   line-height: 1.6;
   max-height: 200px;
   overflow-y: auto;
+}
+
+.calorie-info {
+  background: var(--ios-blue);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.calorie-info strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.calorie-info p {
+  margin: 0;
+  opacity: 0.95;
+}
+
+.video-tutorial {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  height: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--bg-light);
+}
+
+.tutorial-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
 }
 
 @media (max-width: 768px) {
