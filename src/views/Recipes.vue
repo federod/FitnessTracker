@@ -1,24 +1,30 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
 
 const recipeSearchQuery = ref('')
+const selectedDiet = ref('')
 const apiRecipes = ref<any[]>([])
 const isSearchingRecipes = ref(false)
 const recipeSearchError = ref('')
 const selectedRecipe = ref<any | null>(null)
 
-// Watch recipe search query
-watch(recipeSearchQuery, async (newQuery) => {
-  if (!newQuery || newQuery.length < 3) {
-    apiRecipes.value = []
-    recipeSearchError.value = ''
+// Manual search function (triggered by button click)
+async function searchRecipes() {
+  if (!recipeSearchQuery.value || recipeSearchQuery.value.length < 3) {
+    recipeSearchError.value = 'Please enter at least 3 characters'
     return
   }
 
   isSearchingRecipes.value = true
   recipeSearchError.value = ''
+
+  // Build query with dietary preference
+  let query = recipeSearchQuery.value
+  if (selectedDiet.value) {
+    query = `${selectedDiet.value} ${query}`
+  }
 
   try {
     const response = await fetch('/.netlify/functions/claude-recipe', {
@@ -26,7 +32,7 @@ watch(recipeSearchQuery, async (newQuery) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ query: newQuery })
+      body: JSON.stringify({ query })
     })
 
     const data = await response.json()
@@ -43,7 +49,7 @@ watch(recipeSearchQuery, async (newQuery) => {
   } finally {
     isSearchingRecipes.value = false
   }
-})
+}
 
 function selectRecipe(recipe: any) {
   selectedRecipe.value = recipe
@@ -65,12 +71,30 @@ function backToList() {
 
         <div class="card">
           <div class="search-section">
-            <input
-              v-model="recipeSearchQuery"
-              type="text"
-              placeholder="Search recipes (type at least 3 characters)..."
-              class="search-input"
-            />
+            <div class="search-controls">
+              <select v-model="selectedDiet" class="diet-select">
+                <option value="">All Diets</option>
+                <option value="keto">Keto</option>
+                <option value="carnivore">Carnivore</option>
+                <option value="paleo">Paleo</option>
+                <option value="vegan">Vegan</option>
+                <option value="vegetarian">Vegetarian</option>
+                <option value="high protein">High Protein</option>
+                <option value="healthy">Healthy</option>
+              </select>
+
+              <input
+                v-model="recipeSearchQuery"
+                type="text"
+                placeholder="e.g., chicken, breakfast, dinner..."
+                class="search-input"
+                @keyup.enter="searchRecipes"
+              />
+
+              <button @click="searchRecipes" class="search-btn" :disabled="isSearchingRecipes">
+                {{ isSearchingRecipes ? 'Searching...' : 'Search' }}
+              </button>
+            </div>
 
             <div v-if="isSearchingRecipes" class="search-status">
               <p>Searching recipes...</p>
@@ -155,9 +179,32 @@ function backToList() {
   padding: 1.5rem;
 }
 
-.search-input {
-  width: 100%;
+.search-controls {
+  display: flex;
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.diet-select {
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  border: 2px solid var(--separator);
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-family: inherit;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.diet-select:focus {
+  outline: none;
+  border-color: var(--ios-blue);
+}
+
+.search-input {
+  flex: 1;
   padding: 0.875rem 1rem;
   font-size: 1rem;
   border: 2px solid var(--separator);
@@ -166,6 +213,41 @@ function backToList() {
   color: var(--text-primary);
   transition: all 0.2s;
   font-family: inherit;
+  min-width: 200px;
+}
+
+.search-btn {
+  padding: 0.875rem 2rem;
+  background: var(--ios-blue);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.search-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.search-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .search-controls {
+    flex-direction: column;
+  }
+
+  .diet-select,
+  .search-input,
+  .search-btn {
+    width: 100%;
+  }
 }
 
 .search-input::placeholder {
