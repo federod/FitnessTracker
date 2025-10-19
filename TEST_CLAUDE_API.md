@@ -95,3 +95,13 @@ Once everything works:
 2. Use branches for all future features
 3. Monitor API costs in Anthropic console
 4. Consider adding fiber tracking to nutrition data
+
+---
+
+## Environment Variable Check
+
+Make sure in Netlify:
+- Variable name is exactly: `ANTHROPIC_API_KEY` (all caps, with underscores)
+- Value starts with: `sk-ant-api03-`
+- Scopes: "All deploys" or "All scopes"
+- After adding, you MUST redeploy (or trigger a new deploy)
