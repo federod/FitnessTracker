@@ -89,10 +89,14 @@ Only respond with valid JSON, no other text.`
     }
 
     const data = await response.json()
+    console.log('Claude API response:', JSON.stringify(data))
+
     const nutritionText = data.content[0].text
+    console.log('Nutrition text from Claude:', nutritionText)
 
     // Parse the JSON response from Claude
     const nutritionData = JSON.parse(nutritionText)
+    console.log('Parsed nutrition data:', JSON.stringify(nutritionData))
 
     return {
       statusCode: 200,

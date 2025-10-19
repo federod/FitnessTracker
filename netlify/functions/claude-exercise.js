@@ -83,10 +83,14 @@ Only respond with valid JSON array, no other text.`
     }
 
     const data = await response.json()
+    console.log('Claude API response:', JSON.stringify(data))
+
     const exercisesText = data.content[0].text
+    console.log('Exercises text from Claude:', exercisesText)
 
     // Parse the JSON response from Claude
     const exercises = JSON.parse(exercisesText)
+    console.log('Parsed exercises count:', exercises.length)
 
     return {
       statusCode: 200,

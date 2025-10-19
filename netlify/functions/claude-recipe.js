@@ -89,10 +89,14 @@ Only respond with valid JSON array, no other text.`
     }
 
     const data = await response.json()
+    console.log('Claude API response:', JSON.stringify(data))
+
     const recipesText = data.content[0].text
+    console.log('Recipes text from Claude:', recipesText)
 
     // Parse the JSON response from Claude
     const recipes = JSON.parse(recipesText)
+    console.log('Parsed recipes count:', recipes.length)
 
     return {
       statusCode: 200,
