@@ -174,7 +174,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useWeightStore, type WeightEntry } from '@/stores/weightStore'
+import { useWeightStore } from '@/stores/weightStore'
 
 const weightStore = useWeightStore()
 

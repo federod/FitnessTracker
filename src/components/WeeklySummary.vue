@@ -216,7 +216,6 @@ async function fetchWeeklyData() {
 
   try {
     const startDate = currentWeekStart.value.toISOString().split('T')[0]
-    const endDate = getEndOfWeek(currentWeekStart.value).toISOString().split('T')[0]
 
     const response = await fetch(
       `/.netlify/functions/historical-data?type=week&date=${startDate}`,
