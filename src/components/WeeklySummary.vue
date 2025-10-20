@@ -212,13 +212,17 @@ function isToday(dateStr: string): boolean {
 }
 
 function formatDayLabel(dateStr: string): string {
-  const date = new Date(dateStr)
+  // Parse as local date to avoid timezone issues
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   return days[date.getDay()]
 }
 
 function formatDate(dateStr: string): string {
-  const date = new Date(dateStr)
+  // Parse as local date to avoid timezone issues
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
   const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
   return date.toLocaleDateString('en-US', options)
 }
