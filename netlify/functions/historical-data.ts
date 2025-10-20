@@ -212,24 +212,24 @@ export const handler: Handler = async (event) => {
     const dailyData = Object.values(dailySummary)
     const totals = dailyData.reduce(
       (acc, day: any) => ({
-        calories: acc.calories + day.calories,
-        protein: acc.protein + day.protein,
-        carbs: acc.carbs + day.carbs,
-        fat: acc.fat + day.fat,
-        caloriesBurned: acc.caloriesBurned + day.caloriesBurned,
-        exerciseMinutes: acc.exerciseMinutes + day.exerciseMinutes,
+        calories: acc.calories + (day.calories || 0),
+        protein: acc.protein + (day.protein || 0),
+        carbs: acc.carbs + (day.carbs || 0),
+        fat: acc.fat + (day.fat || 0),
+        caloriesBurned: acc.caloriesBurned + (day.caloriesBurned || 0),
+        exerciseMinutes: acc.exerciseMinutes + (day.exerciseMinutes || 0),
       }),
       { calories: 0, protein: 0, carbs: 0, fat: 0, caloriesBurned: 0, exerciseMinutes: 0 }
     )
 
-    const daysCount = dailyData.length
+    const daysCount = dailyData.length || 1 // Prevent division by zero
     const averages = {
-      calories: Math.round(totals.calories / daysCount),
-      protein: Math.round(totals.protein / daysCount),
-      carbs: Math.round(totals.carbs / daysCount),
-      fat: Math.round(totals.fat / daysCount),
-      caloriesBurned: Math.round(totals.caloriesBurned / daysCount),
-      exerciseMinutes: Math.round(totals.exerciseMinutes / daysCount),
+      calories: Math.round(totals.calories / daysCount) || 0,
+      protein: Math.round(totals.protein / daysCount) || 0,
+      carbs: Math.round(totals.carbs / daysCount) || 0,
+      fat: Math.round(totals.fat / daysCount) || 0,
+      caloriesBurned: Math.round(totals.caloriesBurned / daysCount) || 0,
+      exerciseMinutes: Math.round(totals.exerciseMinutes / daysCount) || 0,
     }
 
     return {
