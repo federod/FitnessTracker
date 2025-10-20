@@ -41,6 +41,9 @@ export const handler: Handler = async (event) => {
 
   const db = getDb(DATABASE_URL)
 
+  let userId: string | undefined
+  let params: Record<string, string> = {}
+
   try {
     // Extract and verify JWT token
     const authHeader = event.headers['authorization'] || event.headers['Authorization']
@@ -69,7 +72,7 @@ export const handler: Handler = async (event) => {
     }
 
     const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
-    const userId = payload.userId || payload.sub
+    userId = payload.userId || payload.sub
 
     if (!userId) {
       return {
@@ -82,7 +85,7 @@ export const handler: Handler = async (event) => {
       }
     }
 
-    const params = event.queryStringParameters || {}
+    params = event.queryStringParameters || {}
     const type = params.type || 'week' // 'week' or 'month'
     const date = params.date || new Date().toISOString().split('T')[0]
 
