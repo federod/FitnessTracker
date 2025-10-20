@@ -1,29 +1,67 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useFoodStore } from '@/stores/foodStore'
 import { useUserStore } from '@/stores/userStore'
 import { useExerciseStore } from '@/stores/exerciseStore'
 import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
 import NutritionProgress from '@/components/NutritionProgress.vue'
+import DateNavigator from '@/components/DateNavigator.vue'
+import { getLocalDateString } from '@/utils/date'
 
 const foodStore = useFoodStore()
 const userStore = useUserStore()
 const exerciseStore = useExerciseStore()
 
+const selectedDate = ref(getLocalDateString())
+
 onMounted(() => {
   userStore.fetchProfile()
-  foodStore.loadFromLocalStorage()
-  exerciseStore.loadFromLocalStorage()
+  loadDataForDate(selectedDate.value)
 })
 
-const todaysSummary = computed(() => foodStore.getTodaysSummary())
+watch(selectedDate, (newDate) => {
+  loadDataForDate(newDate)
+})
+
+async function loadDataForDate(date: string) {
+  await foodStore.fetchEntriesByDate(date)
+  await exerciseStore.fetchExercisesByDate(date)
+}
+
+const todaysSummary = computed(() => {
+  const entries = foodStore.foodEntries.filter(entry => entry.date === selectedDate.value)
+  return entries.reduce(
+    (summary, entry) => {
+      const multiplier = entry.servings
+      return {
+        calories: summary.calories + entry.foodItem.calories * multiplier,
+        protein: summary.protein + entry.foodItem.protein * multiplier,
+        carbs: summary.carbs + entry.foodItem.carbs * multiplier,
+        fat: summary.fat + entry.foodItem.fat * multiplier
+      }
+    },
+    { calories: 0, protein: 0, carbs: 0, fat: 0 }
+  )
+})
+
 const dailyGoals = computed(() => userStore.dailyGoals)
-const caloriesBurned = computed(() => exerciseStore.getTodaysCaloriesBurned())
+
+const caloriesBurned = computed(() => {
+  const exercises = exerciseStore.exercises.filter(ex => ex.date === selectedDate.value)
+  return exercises.reduce((total, exercise) => total + exercise.caloriesBurned, 0)
+})
+
+const exerciseCount = computed(() => {
+  return exerciseStore.exercises.filter(ex => ex.date === selectedDate.value).length
+})
+
 const netCalories = computed(() => todaysSummary.value.calories - caloriesBurned.value)
 
-const todaysDate = computed(() => {
-  return new Date().toLocaleDateString('en-US', {
+const dateLabel = computed(() => {
+  const [year, month, day] = selectedDate.value.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+  return date.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -39,8 +77,10 @@ const todaysDate = computed(() => {
       <div class="dashboard">
         <header class="dashboard-header">
           <h2>Dashboard</h2>
-          <p class="date">{{ todaysDate }}</p>
+          <p class="date">{{ dateLabel }}</p>
         </header>
+
+        <DateNavigator v-model="selectedDate" />
 
         <div class="dashboard-grid">
           <div class="card calories-card animate-in">
@@ -62,7 +102,7 @@ const todaysDate = computed(() => {
                 <div class="stat-label">Calories Burned</div>
               </div>
               <div class="stat">
-                <div class="stat-value">{{ exerciseStore.getTodaysExercises().length }}</div>
+                <div class="stat-value">{{ exerciseCount }}</div>
                 <div class="stat-label">Workouts</div>
               </div>
             </div>

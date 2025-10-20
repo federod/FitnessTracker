@@ -4,11 +4,14 @@ import { useExerciseStore } from '@/stores/exerciseStore'
 import { useUserStore } from '@/stores/userStore'
 import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
+import DateNavigator from '@/components/DateNavigator.vue'
 import type { Exercise } from '@/types'
 import { getLocalDateString } from '@/utils/date'
 
 const exerciseStore = useExerciseStore()
 const userStore = useUserStore()
+
+const selectedDate = ref(getLocalDateString())
 
 const showAddModal = ref(false)
 const savedRuns = ref<any[]>([])
@@ -50,12 +53,18 @@ const commonExercises = [
 ]
 
 onMounted(async () => {
-  exerciseStore.loadFromLocalStorage()
   loadSavedRuns()
-  // Load user profile for calorie calculations
   await userStore.fetchProfile()
-  // Don't load exercises on mount - only when user selects filters
+  await loadDataForDate(selectedDate.value)
 })
+
+watch(selectedDate, (newDate) => {
+  loadDataForDate(newDate)
+})
+
+async function loadDataForDate(date: string) {
+  await exerciseStore.fetchExercisesByDate(date)
+}
 
 // Calculate calories based on MET value and user profile
 function calculateCalories(met: number, durationMinutes: number): number {
@@ -155,8 +164,12 @@ async function searchExercises() {
   }
 }
 
-const todaysExercises = computed(() => exerciseStore.getTodaysExercises())
-const totalCaloriesBurned = computed(() => exerciseStore.getTodaysCaloriesBurned())
+const todaysExercises = computed(() =>
+  exerciseStore.exercises.filter(ex => ex.date === selectedDate.value)
+)
+const totalCaloriesBurned = computed(() =>
+  todaysExercises.value.reduce((total, ex) => total + ex.caloriesBurned, 0)
+)
 const totalDuration = computed(() =>
   todaysExercises.value.reduce((total, ex) => total + ex.duration, 0)
 )
@@ -190,13 +203,12 @@ function updateCalories() {
 }
 
 function addExercise() {
-  const today = getLocalDateString()
   exerciseStore.addExercise({
     name: exerciseForm.value.name,
     type: exerciseForm.value.type,
     duration: exerciseForm.value.duration,
     caloriesBurned: exerciseForm.value.caloriesBurned,
-    date: today,
+    date: selectedDate.value,
     notes: exerciseForm.value.notes
   })
 
@@ -288,6 +300,8 @@ function getVideoIdForExercise(exerciseName: string): string {
           <h2>Exercise Log</h2>
           <button @click="showAddModal = true">+ Add Exercise</button>
         </header>
+
+        <DateNavigator v-model="selectedDate" />
 
         <div class="stats-grid">
           <div class="card stat-card">
