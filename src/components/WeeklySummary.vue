@@ -196,8 +196,12 @@ const weightChange = computed(() => {
 })
 
 function isToday(dateStr: string): boolean {
-  const today = new Date().toISOString().split('T')[0]
-  return dateStr === today
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  const todayStr = `${year}-${month}-${day}`
+  return dateStr === todayStr
 }
 
 function formatDayLabel(dateStr: string): string {
