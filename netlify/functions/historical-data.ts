@@ -89,6 +89,8 @@ export const handler: Handler = async (event) => {
     const type = params.type || 'week' // 'week' or 'month'
     const date = params.date || new Date().toISOString().split('T')[0]
 
+    console.log('Historical data request:', { userId, type, date })
+
     // Calculate date range based on type
     let startDate, endDate
     const currentDate = new Date(date)
