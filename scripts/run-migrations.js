@@ -75,6 +75,45 @@ async function runMigrations() {
       }
     }
 
+    // Migration 3: Add new exercise types to enum
+    console.log('\n📝 Running Migration 3: Add new exercise types...')
+
+    try {
+      // Check if enum values already exist
+      const checkKnees = await sql`
+        SELECT EXISTS (
+          SELECT 1 FROM pg_enum e
+          JOIN pg_type t ON e.enumtypid = t.oid
+          WHERE t.typname = 'exercise_type' AND e.enumlabel = 'knees-over-toes'
+        )
+      `
+
+      if (!checkKnees[0].exists) {
+        await sql`ALTER TYPE "public"."exercise_type" ADD VALUE 'knees-over-toes'`
+        console.log('✅ Added exercise type: knees-over-toes')
+      } else {
+        console.log('ℹ️  Exercise type knees-over-toes already exists (skipping)')
+      }
+
+      const checkPlyos = await sql`
+        SELECT EXISTS (
+          SELECT 1 FROM pg_enum e
+          JOIN pg_type t ON e.enumtypid = t.oid
+          WHERE t.typname = 'exercise_type' AND e.enumlabel = 'plyos'
+        )
+      `
+
+      if (!checkPlyos[0].exists) {
+        await sql`ALTER TYPE "public"."exercise_type" ADD VALUE 'plyos'`
+        console.log('✅ Added exercise type: plyos')
+      } else {
+        console.log('ℹ️  Exercise type plyos already exists (skipping)')
+      }
+    } catch (err) {
+      console.error('⚠️  Error adding exercise types:', err.message)
+      // Don't fail the entire migration if enum values already exist
+    }
+
     console.log('\n🎉 All migrations completed successfully!')
     console.log('\n📊 Database is ready to use!')
 
