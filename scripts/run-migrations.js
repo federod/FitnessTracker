@@ -11,10 +11,12 @@ async function runMigrations() {
 
   if (!databaseUrl) {
     console.error('❌ DATABASE_URL not found in environment variables')
+    console.error('Available env vars:', Object.keys(process.env).filter(k => k.includes('DATA')))
     process.exit(1)
   }
 
   console.log('🔗 Connecting to Neon database...')
+  console.log('📍 Database host:', databaseUrl.split('@')[1]?.split('/')[0] || 'unknown')
   const sql = neon(databaseUrl)
 
   try {
