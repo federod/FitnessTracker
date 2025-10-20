@@ -122,6 +122,7 @@
 </template>
 
 <script setup lang="ts">
+// v1.1.0 - Fixed timezone bug for isToday function
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 
