@@ -1,69 +1,50 @@
 <template>
   <div class="date-navigator">
-    <button @click="previousDay" class="nav-btn">
+    <button @click="dateStore.previousDay()" class="nav-btn">
       <span>←</span>
     </button>
 
     <div class="date-display">
       <input
         type="date"
-        v-model="localDate"
-        @change="onDateChange"
+        v-model="dateStore.selectedDate"
         :max="maxDate"
         class="date-input"
       />
       <div class="date-label">{{ dateLabel }}</div>
     </div>
 
-    <button @click="nextDay" class="nav-btn" :disabled="isToday">
+    <button @click="dateStore.nextDay()" class="nav-btn" :disabled="dateStore.isToday()">
       <span>→</span>
     </button>
 
-    <button v-if="!isToday" @click="goToToday" class="today-btn">
+    <button v-if="!dateStore.isToday()" @click="dateStore.goToToday()" class="today-btn">
       Today
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed } from 'vue'
+import { useDateStore } from '@/stores/dateStore'
 import { getLocalDateString } from '@/utils/date'
 
-interface Props {
-  modelValue: string
-  canGoFuture?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  canGoFuture: false
-})
-
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
-
-const localDate = ref(props.modelValue)
+const dateStore = useDateStore()
 const today = getLocalDateString()
 
-const maxDate = computed(() => {
-  return props.canGoFuture ? undefined : today
-})
-
-const isToday = computed(() => {
-  return localDate.value === today
-})
+const maxDate = computed(() => today)
 
 const dateLabel = computed(() => {
-  if (isToday.value) return 'Today'
+  if (dateStore.isToday()) return 'Today'
 
-  const [year, month, day] = localDate.value.split('-').map(Number)
+  const [year, month, day] = dateStore.selectedDate.split('-').map(Number)
   const date = new Date(year, month - 1, day)
 
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)
   const yesterdayStr = getLocalDateString(yesterday)
 
-  if (localDate.value === yesterdayStr) return 'Yesterday'
+  if (dateStore.selectedDate === yesterdayStr) return 'Yesterday'
 
   const options: Intl.DateTimeFormatOptions = {
     weekday: 'long',
@@ -72,41 +53,6 @@ const dateLabel = computed(() => {
   }
   return date.toLocaleDateString('en-US', options)
 })
-
-watch(() => props.modelValue, (newValue) => {
-  localDate.value = newValue
-})
-
-function previousDay() {
-  const [year, month, day] = localDate.value.split('-').map(Number)
-  const date = new Date(year, month - 1, day)
-  date.setDate(date.getDate() - 1)
-
-  const newDate = getLocalDateString(date)
-  localDate.value = newDate
-  emit('update:modelValue', newDate)
-}
-
-function nextDay() {
-  const [year, month, day] = localDate.value.split('-').map(Number)
-  const date = new Date(year, month - 1, day)
-  date.setDate(date.getDate() + 1)
-
-  const newDate = getLocalDateString(date)
-  if (!props.canGoFuture && newDate > today) return
-
-  localDate.value = newDate
-  emit('update:modelValue', newDate)
-}
-
-function goToToday() {
-  localDate.value = today
-  emit('update:modelValue', today)
-}
-
-function onDateChange() {
-  emit('update:modelValue', localDate.value)
-}
 </script>
 
 <style scoped>

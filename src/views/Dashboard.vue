@@ -1,26 +1,25 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useFoodStore } from '@/stores/foodStore'
 import { useUserStore } from '@/stores/userStore'
 import { useExerciseStore } from '@/stores/exerciseStore'
+import { useDateStore } from '@/stores/dateStore'
 import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
 import NutritionProgress from '@/components/NutritionProgress.vue'
 import DateNavigator from '@/components/DateNavigator.vue'
-import { getLocalDateString } from '@/utils/date'
 
 const foodStore = useFoodStore()
 const userStore = useUserStore()
 const exerciseStore = useExerciseStore()
-
-const selectedDate = ref(getLocalDateString())
+const dateStore = useDateStore()
 
 onMounted(() => {
   userStore.fetchProfile()
-  loadDataForDate(selectedDate.value)
+  loadDataForDate(dateStore.selectedDate)
 })
 
-watch(selectedDate, (newDate) => {
+watch(() => dateStore.selectedDate, (newDate) => {
   loadDataForDate(newDate)
 })
 
@@ -30,7 +29,7 @@ async function loadDataForDate(date: string) {
 }
 
 const todaysSummary = computed(() => {
-  const entries = foodStore.foodEntries.filter(entry => entry.date === selectedDate.value)
+  const entries = foodStore.foodEntries.filter(entry => entry.date === dateStore.selectedDate)
   return entries.reduce(
     (summary, entry) => {
       const multiplier = entry.servings
@@ -48,18 +47,18 @@ const todaysSummary = computed(() => {
 const dailyGoals = computed(() => userStore.dailyGoals)
 
 const caloriesBurned = computed(() => {
-  const exercises = exerciseStore.exercises.filter(ex => ex.date === selectedDate.value)
+  const exercises = exerciseStore.exercises.filter(ex => ex.date === dateStore.selectedDate)
   return exercises.reduce((total, exercise) => total + exercise.caloriesBurned, 0)
 })
 
 const exerciseCount = computed(() => {
-  return exerciseStore.exercises.filter(ex => ex.date === selectedDate.value).length
+  return exerciseStore.exercises.filter(ex => ex.date === dateStore.selectedDate).length
 })
 
 const netCalories = computed(() => todaysSummary.value.calories - caloriesBurned.value)
 
 const dateLabel = computed(() => {
-  const [year, month, day] = selectedDate.value.split('-').map(Number)
+  const [year, month, day] = dateStore.selectedDate.split('-').map(Number)
   const date = new Date(year, month - 1, day)
   return date.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -80,7 +79,7 @@ const dateLabel = computed(() => {
           <p class="date">{{ dateLabel }}</p>
         </header>
 
-        <DateNavigator v-model="selectedDate" />
+        <DateNavigator />
 
         <div class="dashboard-grid">
           <div class="card calories-card animate-in">

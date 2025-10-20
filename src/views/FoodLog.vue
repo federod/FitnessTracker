@@ -2,17 +2,16 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useFoodStore } from '@/stores/foodStore'
 import { useUserStore } from '@/stores/userStore'
+import { useDateStore } from '@/stores/dateStore'
 import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
 import NutritionProgress from '@/components/NutritionProgress.vue'
 import DateNavigator from '@/components/DateNavigator.vue'
 import type { FoodItem } from '@/types'
-import { getLocalDateString } from '@/utils/date'
 
 const foodStore = useFoodStore()
 const userStore = useUserStore()
-
-const selectedDate = ref(getLocalDateString())
+const dateStore = useDateStore()
 const showAddModal = ref(false)
 const selectedFood = ref<FoodItem | null>(null)
 const servings = ref(1)
@@ -34,10 +33,10 @@ const customFood = ref({
 
 onMounted(() => {
   userStore.fetchProfile()
-  loadDataForDate(selectedDate.value)
+  loadDataForDate(dateStore.selectedDate)
 })
 
-watch(selectedDate, (newDate) => {
+watch(() => dateStore.selectedDate, (newDate) => {
   loadDataForDate(newDate)
 })
 
@@ -46,7 +45,7 @@ async function loadDataForDate(date: string) {
 }
 
 const todaysSummary = computed(() => {
-  const entries = foodStore.foodEntries.filter(entry => entry.date === selectedDate.value)
+  const entries = foodStore.foodEntries.filter(entry => entry.date === dateStore.selectedDate)
   return entries.reduce(
     (summary, entry) => {
       const multiplier = entry.servings
@@ -123,16 +122,16 @@ watch(searchQuery, async (newQuery) => {
 })
 
 const breakfastEntries = computed(() =>
-  foodStore.foodEntries.filter(e => e.mealType === 'breakfast' && e.date === selectedDate.value)
+  foodStore.foodEntries.filter(e => e.mealType === 'breakfast' && e.date === dateStore.selectedDate)
 )
 const lunchEntries = computed(() =>
-  foodStore.foodEntries.filter(e => e.mealType === 'lunch' && e.date === selectedDate.value)
+  foodStore.foodEntries.filter(e => e.mealType === 'lunch' && e.date === dateStore.selectedDate)
 )
 const dinnerEntries = computed(() =>
-  foodStore.foodEntries.filter(e => e.mealType === 'dinner' && e.date === selectedDate.value)
+  foodStore.foodEntries.filter(e => e.mealType === 'dinner' && e.date === dateStore.selectedDate)
 )
 const snackEntries = computed(() =>
-  foodStore.foodEntries.filter(e => e.mealType === 'snack' && e.date === selectedDate.value)
+  foodStore.foodEntries.filter(e => e.mealType === 'snack' && e.date === dateStore.selectedDate)
 )
 
 function openAddModal(meal: 'breakfast' | 'lunch' | 'dinner' | 'snack') {
@@ -151,7 +150,7 @@ function addFood() {
     foodItem: selectedFood.value,
     servings: servings.value,
     mealType: selectedMeal.value,
-    date: selectedDate.value
+    date: dateStore.selectedDate
   })
 
   closeAddModal()
@@ -198,7 +197,7 @@ function addCustomFood() {
           </button>
         </header>
 
-        <DateNavigator v-model="selectedDate" />
+        <DateNavigator />
 
         <div class="card">
           <div class="card-header">

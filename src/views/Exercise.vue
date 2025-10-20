@@ -2,16 +2,15 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useExerciseStore } from '@/stores/exerciseStore'
 import { useUserStore } from '@/stores/userStore'
+import { useDateStore } from '@/stores/dateStore'
 import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
 import DateNavigator from '@/components/DateNavigator.vue'
 import type { Exercise } from '@/types'
-import { getLocalDateString } from '@/utils/date'
 
 const exerciseStore = useExerciseStore()
 const userStore = useUserStore()
-
-const selectedDate = ref(getLocalDateString())
+const dateStore = useDateStore()
 
 const showAddModal = ref(false)
 const savedRuns = ref<any[]>([])
@@ -55,10 +54,10 @@ const commonExercises = [
 onMounted(async () => {
   loadSavedRuns()
   await userStore.fetchProfile()
-  await loadDataForDate(selectedDate.value)
+  await loadDataForDate(dateStore.selectedDate)
 })
 
-watch(selectedDate, (newDate) => {
+watch(() => dateStore.selectedDate, (newDate) => {
   loadDataForDate(newDate)
 })
 
@@ -165,7 +164,7 @@ async function searchExercises() {
 }
 
 const todaysExercises = computed(() =>
-  exerciseStore.exercises.filter(ex => ex.date === selectedDate.value)
+  exerciseStore.exercises.filter(ex => ex.date === dateStore.selectedDate)
 )
 const totalCaloriesBurned = computed(() =>
   todaysExercises.value.reduce((total, ex) => total + ex.caloriesBurned, 0)
@@ -208,7 +207,7 @@ function addExercise() {
     type: exerciseForm.value.type,
     duration: exerciseForm.value.duration,
     caloriesBurned: exerciseForm.value.caloriesBurned,
-    date: selectedDate.value,
+    date: dateStore.selectedDate,
     notes: exerciseForm.value.notes
   })
 
@@ -301,7 +300,7 @@ function getVideoIdForExercise(exerciseName: string): string {
           <button @click="showAddModal = true">+ Add Exercise</button>
         </header>
 
-        <DateNavigator v-model="selectedDate" />
+        <DateNavigator />
 
         <div class="stats-grid">
           <div class="card stat-card">
