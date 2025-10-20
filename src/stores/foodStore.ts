@@ -1,9 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { useAuthStore } from './authStore'
 import type { FoodEntry, FoodItem, NutritionSummary } from '@/types'
 
 export const useFoodStore = defineStore('food', () => {
   const foodEntries = ref<FoodEntry[]>([])
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
+
+  // Common foods for quick selection (kept in memory)
   const commonFoods = ref<FoodItem[]>([
     {
       id: '1',
@@ -79,6 +84,76 @@ export const useFoodStore = defineStore('food', () => {
     }
   ])
 
+  const authStore = useAuthStore()
+
+  // Get auth headers
+  function getAuthHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authStore.token}`
+    }
+  }
+
+  // Fetch food entries for a specific date
+  async function fetchEntriesByDate(date?: string) {
+    const targetDate = date || new Date().toISOString().split('T')[0]
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await fetch(`/.netlify/functions/food-entries?date=${targetDate}`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch food entries')
+      }
+
+      foodEntries.value = data.entries || []
+      return data.entries
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to fetch food entries'
+      console.error('Fetch food entries error:', err)
+      return []
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Fetch food entries for a date range (for weekly/monthly views)
+  async function fetchEntriesByDateRange(startDate: string, endDate: string) {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await fetch(
+        `/.netlify/functions/food-entries?startDate=${startDate}&endDate=${endDate}`,
+        {
+          method: 'GET',
+          headers: getAuthHeaders(),
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch food entries')
+      }
+
+      return data.entries || []
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to fetch food entries'
+      console.error('Fetch food entries error:', err)
+      return []
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // Get today's nutrition summary
   function getTodaysSummary(): NutritionSummary {
     const today = new Date().toISOString().split('T')[0]
     const todaysEntries = foodEntries.value.filter(entry => entry.date === today)
@@ -97,10 +172,7 @@ export const useFoodStore = defineStore('food', () => {
     )
   }
 
-  function getEntriesByDate(date: string): FoodEntry[] {
-    return foodEntries.value.filter(entry => entry.date === date)
-  }
-
+  // Get entries by meal type
   function getEntriesByMealType(mealType: string, date?: string): FoodEntry[] {
     const targetDate = date || new Date().toISOString().split('T')[0]
     return foodEntries.value.filter(
@@ -108,53 +180,108 @@ export const useFoodStore = defineStore('food', () => {
     )
   }
 
-  function addFoodEntry(entry: Omit<FoodEntry, 'id' | 'timestamp'>) {
-    const newEntry: FoodEntry = {
-      ...entry,
-      id: Date.now().toString(),
-      timestamp: new Date()
+  // Add new food entry
+  async function addFoodEntry(entry: {
+    foodItem: FoodItem
+    servings: number
+    mealType: string
+    date: string
+  }) {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await fetch('/.netlify/functions/food-entries', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          foodItemId: entry.foodItem.id,
+          servings: entry.servings,
+          mealType: entry.mealType,
+          date: entry.date,
+          // If foodItem doesn't have a numeric ID, it's a custom food
+          customFood: isNaN(parseInt(entry.foodItem.id)) ? {
+            name: entry.foodItem.name,
+            calories: entry.foodItem.calories,
+            protein: entry.foodItem.protein,
+            carbs: entry.foodItem.carbs,
+            fat: entry.foodItem.fat,
+            servingSize: entry.foodItem.servingSize,
+          } : undefined
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to add food entry')
+      }
+
+      // Refresh entries for today
+      await fetchEntriesByDate(entry.date)
+      return { success: true }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to add food entry'
+      console.error('Add food entry error:', err)
+      return { success: false, error: error.value }
+    } finally {
+      isLoading.value = false
     }
-    foodEntries.value.push(newEntry)
-    saveToLocalStorage()
   }
 
-  function removeFoodEntry(id: string) {
-    foodEntries.value = foodEntries.value.filter(entry => entry.id !== id)
-    saveToLocalStorage()
+  // Remove food entry
+  async function removeFoodEntry(id: string) {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await fetch(`/.netlify/functions/food-entries?id=${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to remove food entry')
+      }
+
+      // Remove from local state
+      foodEntries.value = foodEntries.value.filter(entry => entry.id !== id)
+      return { success: true }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to remove food entry'
+      console.error('Remove food entry error:', err)
+      return { success: false, error: error.value }
+    } finally {
+      isLoading.value = false
+    }
   }
 
+  // Add custom food (kept for backward compatibility with common foods list)
   function addCustomFood(food: Omit<FoodItem, 'id'>) {
     const newFood: FoodItem = {
       ...food,
-      id: Date.now().toString()
+      id: `custom-${Date.now()}`
     }
     commonFoods.value.push(newFood)
-    saveToLocalStorage()
+    // Note: Custom foods will be saved to DB when added to a meal
   }
 
-  function saveToLocalStorage() {
-    localStorage.setItem('foodEntries', JSON.stringify(foodEntries.value))
-    localStorage.setItem('commonFoods', JSON.stringify(commonFoods.value))
-  }
-
-  function loadFromLocalStorage() {
-    const savedEntries = localStorage.getItem('foodEntries')
-    const savedFoods = localStorage.getItem('commonFoods')
-
-    if (savedEntries) {
-      foodEntries.value = JSON.parse(savedEntries)
-    }
-    if (savedFoods) {
-      commonFoods.value = JSON.parse(savedFoods)
-    }
+  // Legacy function - now just fetches from database
+  async function loadFromLocalStorage() {
+    await fetchEntriesByDate()
   }
 
   return {
     foodEntries,
     commonFoods,
+    isLoading,
+    error,
     getTodaysSummary,
-    getEntriesByDate,
     getEntriesByMealType,
+    fetchEntriesByDate,
+    fetchEntriesByDateRange,
     addFoodEntry,
     removeFoodEntry,
     addCustomFood,
