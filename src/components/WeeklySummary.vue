@@ -202,6 +202,12 @@ function isToday(dateStr: string): boolean {
   const month = String(today.getMonth() + 1).padStart(2, '0')
   const day = String(today.getDate()).padStart(2, '0')
   const todayStr = `${year}-${month}-${day}`
+
+  // Debug logging
+  console.log('[isToday] Checking:', dateStr)
+  console.log('[isToday] Today is:', todayStr)
+  console.log('[isToday] Match:', dateStr === todayStr)
+
   return dateStr === todayStr
 }
 
