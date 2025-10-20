@@ -249,11 +249,15 @@ export const handler: Handler = async (event) => {
     }
   } catch (error) {
     console.error('Historical data error:', error)
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    console.error('User ID:', userId)
+    console.error('Query params:', params)
     return {
       statusCode: 500,
       body: JSON.stringify({
         error: 'Failed to fetch historical data',
         details: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
       }),
       headers: {
         'Content-Type': 'application/json',

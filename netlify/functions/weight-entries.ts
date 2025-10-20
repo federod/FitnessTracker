@@ -182,11 +182,15 @@ export const handler: Handler = async (event) => {
     }
   } catch (error) {
     console.error('Weight entries error:', error)
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    console.error('User ID:', userId)
+    console.error('HTTP Method:', event.httpMethod)
     return {
       statusCode: 500,
       body: JSON.stringify({
         error: 'Failed to process weight entries',
         details: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
       }),
       headers: {
         'Content-Type': 'application/json',
