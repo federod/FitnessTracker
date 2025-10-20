@@ -240,6 +240,7 @@ function nextWeek() {
 async function fetchWeeklyData() {
   isLoading.value = true
   error.value = null
+  weeklyData.value = null // Clear old data before fetching new data
 
   try {
     const startDate = currentWeekStart.value.toISOString().split('T')[0]
