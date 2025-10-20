@@ -77,8 +77,21 @@ async function runMigrations() {
       }
     }
 
-    // Migration 3: Add new exercise types to enum
-    console.log('\n📝 Running Migration 3: Add new exercise types...')
+    // Migration 3: Add notes column to weight_history if missing
+    console.log('\n📝 Running Migration 3: Add notes column to weight_history...')
+
+    try {
+      await sql`
+        ALTER TABLE weight_history
+        ADD COLUMN IF NOT EXISTS notes text
+      `
+      console.log('✅ Added notes column to weight_history')
+    } catch (err) {
+      console.log('ℹ️  Notes column might already exist or error:', err.message)
+    }
+
+    // Migration 4: Add new exercise types to enum
+    console.log('\n📝 Running Migration 4: Add new exercise types...')
 
     try {
       // Check if enum values already exist
