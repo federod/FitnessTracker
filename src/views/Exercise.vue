@@ -37,12 +37,12 @@ const commonExercises = [
   { name: 'Weight Training', type: 'strength', met: 6.0 },
   { name: 'Yoga', type: 'flexibility', met: 2.5 },
   { name: 'HIIT', type: 'cardio', met: 12.0 },
-  { name: 'Basketball', type: 'sports', met: 8.0 },
   { name: 'Jump Rope', type: 'cardio', met: 11.0 },
   { name: 'Rowing Machine', type: 'cardio', met: 7.0 },
   { name: 'ATG Split Squat', type: 'knees-over-toes', met: 5.5 },
   { name: 'Tibialis Raise', type: 'knees-over-toes', met: 3.0 },
   { name: 'Nordic Curls', type: 'knees-over-toes', met: 6.5 },
+  { name: 'Reverse Incline Walks', type: 'knees-over-toes', met: 4.0 },
   { name: 'Box Jumps', type: 'plyos', met: 8.0 },
   { name: 'Burpees', type: 'plyos', met: 10.0 },
   { name: 'Broad Jumps', type: 'plyos', met: 7.5 }
@@ -253,10 +253,10 @@ function getVideoIdForExercise(exerciseName: string): string {
     'yoga': 'v7AYKMP6rOE',
     'HIIT': 'ml6cT4AZdqI', // HIIT workout
     'hiit': 'ml6cT4AZdqI',
-    'Basketball': 'HZ8vZjpSQ4E', // Basketball basics
-    'basketball': 'HZ8vZjpSQ4E',
     'Jump Rope': 'FJmRQ5iTXKE', // Jump rope tutorial
     'jump rope': 'FJmRQ5iTXKE',
+    'Reverse Incline Walks': 'K-CrEi0ymMg', // Knees Over Toes - Reverse walking
+    'reverse incline walks': 'K-CrEi0ymMg',
     'Rowing Machine': '4OlIp0b1Yfs', // Rowing form
     'rowing machine': '4OlIp0b1Yfs',
     'Hammer Curl': 'zC3nLlEvin4', // Hammer curls
