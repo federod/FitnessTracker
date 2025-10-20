@@ -218,11 +218,15 @@ const dateLabel = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .card-header h3 {
   margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
 }
 
 .card-icon {
