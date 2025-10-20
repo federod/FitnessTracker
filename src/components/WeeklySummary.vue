@@ -60,22 +60,38 @@
           :class="{ 'is-today': isToday(day.date) }"
         >
           <div class="day-header">
-            <h4>{{ formatDayLabel(day.date) }}</h4>
-            <span class="date">{{ formatDate(day.date) }}</span>
+            <div class="day-title">
+              <h4>{{ formatDayLabel(day.date) }}</h4>
+              <span class="date">{{ formatDate(day.date) }}</span>
+            </div>
           </div>
-          <div class="day-stats">
-            <div class="stat">
-              <span class="stat-label">Calories</span>
-              <span class="stat-value">{{ day.calories }}</span>
+
+          <div class="day-content">
+            <div class="calories-section">
+              <div class="calories-main">
+                <span class="calories-label">Calories</span>
+                <span class="calories-value">{{ day.calories.toLocaleString() }}</span>
+              </div>
             </div>
-            <div class="stat">
-              <span class="stat-label">P: {{ day.protein?.toFixed(0) }}g</span>
-              <span class="stat-label">C: {{ day.carbs?.toFixed(0) }}g</span>
-              <span class="stat-label">F: {{ day.fat?.toFixed(0) }}g</span>
+
+            <div class="macros-section">
+              <div class="macro-badge protein">
+                <span class="macro-label">Protein</span>
+                <span class="macro-value">{{ day.protein?.toFixed(0) }}g</span>
+              </div>
+              <div class="macro-badge carbs">
+                <span class="macro-label">Carbs</span>
+                <span class="macro-value">{{ day.carbs?.toFixed(0) }}g</span>
+              </div>
+              <div class="macro-badge fat">
+                <span class="macro-label">Fat</span>
+                <span class="macro-value">{{ day.fat?.toFixed(0) }}g</span>
+              </div>
             </div>
-            <div class="stat" v-if="day.exerciseMinutes > 0">
-              <span class="stat-label">Exercise</span>
-              <span class="stat-value">{{ day.exerciseMinutes }} min</span>
+
+            <div v-if="day.exerciseMinutes > 0" class="exercise-section">
+              <span class="exercise-label">Exercise</span>
+              <span class="exercise-value">{{ day.exerciseMinutes }} min</span>
             </div>
           </div>
         </div>
@@ -368,59 +384,190 @@ onMounted(() => {
 
 .day-card {
   background: var(--card-bg);
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  overflow: hidden;
+  position: relative;
 }
 
 .day-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .day-card.is-today {
-  border: 2px solid var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 20px rgba(0, 122, 255, 0.15);
+}
+
+.day-card.is-today::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--primary-color);
 }
 
 .day-header {
+  padding: 1.25rem 1.5rem 1rem;
+  background: linear-gradient(135deg, var(--bg-color) 0%, var(--card-bg) 100%);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.day-title {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
 }
 
 .day-header h4 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.125rem;
   font-weight: 600;
+  color: var(--text-color);
+  letter-spacing: -0.01em;
 }
 
 .date {
   font-size: 0.875rem;
+  font-weight: 500;
   color: var(--text-secondary);
+  background: var(--bg-light);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
 }
 
-.day-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+.day-content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Calories Section */
+.calories-section {
+  display: flex;
+  align-items: center;
   gap: 1rem;
 }
 
-.stat {
+.calories-main {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.08) 0%, rgba(0, 122, 255, 0.04) 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 122, 255, 0.1);
+}
+
+.calories-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calories-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  letter-spacing: -0.02em;
+}
+
+/* Macros Section */
+.macros-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.macro-badge {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 0.75rem;
+  border-radius: 12px;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
 }
 
-.stat-label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
+.macro-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.stat-value {
-  font-size: 1.25rem;
+.macro-badge.protein {
+  border-left: 3px solid #ef4444;
+}
+
+.macro-badge.carbs {
+  border-left: 3px solid #3b82f6;
+}
+
+.macro-badge.fat {
+  border-left: 3px solid #f59e0b;
+}
+
+.macro-label {
+  font-size: 0.75rem;
   font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.macro-value {
+  font-size: 1.125rem;
+  font-weight: 700;
   color: var(--text-color);
+}
+
+.macro-badge.protein .macro-label {
+  color: #ef4444;
+}
+
+.macro-badge.carbs .macro-label {
+  color: #3b82f6;
+}
+
+.macro-badge.fat .macro-label {
+  color: #f59e0b;
+}
+
+/* Exercise Section */
+.exercise-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.04) 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.exercise-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #10b981;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.exercise-value {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #10b981;
 }
 
 .weight-entries {
@@ -479,11 +626,44 @@ onMounted(() => {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .day-stats {
-    grid-template-columns: 1fr;
+  .header h2 {
+    font-size: 1.25rem;
   }
 
-  .header h2 {
+  .day-header {
+    padding: 1rem 1.25rem 0.875rem;
+  }
+
+  .day-content {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .calories-value {
+    font-size: 1.5rem;
+  }
+
+  .macros-section {
+    gap: 0.5rem;
+  }
+
+  .macro-badge {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .macro-label {
+    font-size: 0.7rem;
+  }
+
+  .macro-value {
+    font-size: 1rem;
+  }
+
+  .exercise-section {
+    padding: 0.875rem 1rem;
+  }
+
+  .exercise-value {
     font-size: 1.25rem;
   }
 }
