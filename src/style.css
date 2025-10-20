@@ -43,6 +43,16 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+
+  /* Aliases for component compatibility - Light Mode */
+  --card-bg: var(--bg-tertiary);
+  --bg-color: var(--bg-secondary);
+  --bg-light: var(--fill-tertiary);
+  --primary-color: var(--ios-blue);
+  --primary-dark: #0051D5;
+  --border-color: var(--separator);
+  --text-color: var(--text-primary);
+  --error-color: var(--ios-red);
 }
 
 /* Dark Theme - iOS Style */
@@ -81,6 +91,16 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.6);
+
+  /* Aliases for component compatibility - Dark Mode */
+  --card-bg: var(--bg-tertiary);
+  --bg-color: var(--bg-secondary);
+  --bg-light: var(--fill-tertiary);
+  --primary-color: var(--ios-blue);
+  --primary-dark: #0070E0;
+  --border-color: var(--separator);
+  --text-color: var(--text-primary);
+  --error-color: var(--ios-red);
 }
 
 /* Common Variables */
