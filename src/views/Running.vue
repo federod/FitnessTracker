@@ -2,14 +2,16 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
+import DateNavigator from '@/components/DateNavigator.vue'
 import { useUserStore } from '@/stores/userStore'
 import { useExerciseStore } from '@/stores/exerciseStore'
-import { getLocalDateString } from '@/utils/date'
+import { useDateStore } from '@/stores/dateStore'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
 const userStore = useUserStore()
 const exerciseStore = useExerciseStore()
+const dateStore = useDateStore()
 
 interface Position {
   lat: number
@@ -297,7 +299,6 @@ function getDistanceBetweenPoints(pos1: Position, pos2: Position): number {
 }
 
 function saveRun() {
-  const today = getLocalDateString()
   const durationMinutes = Math.floor(duration.value / 60)
 
   const run = {
@@ -315,13 +316,13 @@ function saveRun() {
   runs.push(run)
   localStorage.setItem('runs', JSON.stringify(runs))
 
-  // Add to exercise log for daily stats
+  // Add to exercise log for daily stats (using selected date)
   exerciseStore.addExercise({
     name: `Running - ${distanceKm.value} km`,
     type: 'cardio',
     duration: durationMinutes,
     caloriesBurned: caloriesBurned.value,
-    date: today,
+    date: dateStore.selectedDate,
     notes: `Pace: ${pace.value} min/km`
   })
 
@@ -351,6 +352,8 @@ function resetTracking() {
         <header class="page-header">
           <h2>Running Tracker</h2>
         </header>
+
+        <DateNavigator />
 
         <div v-if="locationError" class="alert alert-error">
           {{ locationError }}
