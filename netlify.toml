@@ -9,10 +9,6 @@
 [functions]
   node_bundler = "esbuild"
 
-# Disable auto-installed integrations that are causing build failures
-[integrations]
-  auto_install = false
-
 [[redirects]]
   from = "/*"
   to = "/index.html"
