@@ -20,7 +20,7 @@ export interface FoodEntry {
 export interface Exercise {
   id: string
   name: string
-  type: 'cardio' | 'strength' | 'flexibility' | 'sports'
+  type: 'cardio' | 'strength' | 'flexibility' | 'sports' | 'knees-over-toes' | 'plyos'
   duration: number // in minutes
   caloriesBurned: number
   date: string

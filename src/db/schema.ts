@@ -2,7 +2,7 @@ import { pgTable, text, serial, integer, real, timestamp, date, pgEnum } from 'd
 
 // Enums
 export const mealTypeEnum = pgEnum('meal_type', ['breakfast', 'lunch', 'dinner', 'snack'])
-export const exerciseTypeEnum = pgEnum('exercise_type', ['cardio', 'strength', 'flexibility', 'sports'])
+export const exerciseTypeEnum = pgEnum('exercise_type', ['cardio', 'strength', 'flexibility', 'sports', 'knees-over-toes', 'plyos'])
 export const genderEnum = pgEnum('gender', ['male', 'female', 'other'])
 export const activityLevelEnum = pgEnum('activity_level', ['sedentary', 'light', 'moderate', 'active', 'very-active'])
 export const goalEnum = pgEnum('goal', ['lose', 'maintain', 'gain'])

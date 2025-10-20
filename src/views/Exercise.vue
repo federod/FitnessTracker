@@ -39,7 +39,13 @@ const commonExercises = [
   { name: 'HIIT', type: 'cardio', met: 12.0 },
   { name: 'Basketball', type: 'sports', met: 8.0 },
   { name: 'Jump Rope', type: 'cardio', met: 11.0 },
-  { name: 'Rowing Machine', type: 'cardio', met: 7.0 }
+  { name: 'Rowing Machine', type: 'cardio', met: 7.0 },
+  { name: 'ATG Split Squat', type: 'knees-over-toes', met: 5.5 },
+  { name: 'Tibialis Raise', type: 'knees-over-toes', met: 3.0 },
+  { name: 'Nordic Curls', type: 'knees-over-toes', met: 6.5 },
+  { name: 'Box Jumps', type: 'plyos', met: 8.0 },
+  { name: 'Burpees', type: 'plyos', met: 10.0 },
+  { name: 'Broad Jumps', type: 'plyos', met: 7.5 }
 ]
 
 onMounted(async () => {
@@ -64,7 +70,9 @@ function getMETByType(type: string): number {
     cardio: 8.0,
     strength: 6.0,
     flexibility: 3.0,
-    sports: 7.0
+    sports: 7.0,
+    'knees-over-toes': 5.0,
+    plyos: 8.5
   }
   return metValues[type] || 5.0
 }
@@ -220,7 +228,9 @@ function getExerciseIcon(type: Exercise['type']) {
     cardio: '🏃',
     strength: '💪',
     flexibility: '🧘',
-    sports: '⚽'
+    sports: '⚽',
+    'knees-over-toes': '🦵',
+    plyos: '🦘'
   }
   return icons[type]
 }
@@ -442,6 +452,8 @@ function getVideoIdForExercise(exerciseName: string): string {
                 <option value="strength">Strength</option>
                 <option value="flexibility">Flexibility</option>
                 <option value="sports">Sports</option>
+                <option value="knees-over-toes">Knees Over Toes</option>
+                <option value="plyos">Plyos</option>
               </select>
             </div>
 

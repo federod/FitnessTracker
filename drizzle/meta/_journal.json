@@ -22,6 +22,13 @@
       "when": 1760923302262,
       "tag": "0002_tired_omega_flight",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1760934495539,
+      "tag": "0003_lethal_sprite",
+      "breakpoints": true
     }
   ]
 }
