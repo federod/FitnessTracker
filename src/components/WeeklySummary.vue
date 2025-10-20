@@ -145,12 +145,14 @@ interface WeightData {
 interface WeeklyData {
   startDate: string
   endDate: string
-  totalCalories: number
-  totalProtein: number
-  totalCarbs: number
-  totalFat: number
-  totalExerciseMinutes: number
-  totalCaloriesBurned: number
+  totals: {
+    calories: number
+    protein: number
+    carbs: number
+    fat: number
+    exerciseMinutes: number
+    caloriesBurned: number
+  }
   dailyData: DailyData[]
   weightData: WeightData[]
 }
