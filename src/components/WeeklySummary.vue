@@ -244,6 +244,8 @@ async function fetchWeeklyData() {
   try {
     const startDate = currentWeekStart.value.toISOString().split('T')[0]
 
+    console.log('[fetchWeeklyData] Requesting week starting:', startDate)
+
     const response = await fetch(
       `/.netlify/functions/historical-data?type=week&date=${startDate}`,
       {
@@ -260,6 +262,11 @@ async function fetchWeeklyData() {
     if (!response.ok) {
       throw new Error(data.error || 'Failed to fetch weekly data')
     }
+
+    console.log('[fetchWeeklyData] Received dailyData dates:')
+    data.dailyData.forEach((day: any, i: number) => {
+      console.log(`  [${i}] ${day.date}`)
+    })
 
     weeklyData.value = data
   } catch (err) {
