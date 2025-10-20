@@ -1,35 +1,7 @@
-<template>
-  <div class="history-page">
-    <div class="page-header">
-      <h1>History</h1>
-      <p class="subtitle">View your fitness progress over time</p>
-    </div>
-
-    <!-- Tab Navigation -->
-    <div class="tabs">
-      <button
-        v-for="tab in tabs"
-        :key="tab.id"
-        @click="activeTab = tab.id"
-        :class="['tab-btn', { active: activeTab === tab.id }]"
-      >
-        {{ tab.label }}
-      </button>
-    </div>
-
-    <!-- Tab Content -->
-    <div class="tab-content">
-      <transition name="fade" mode="out-in">
-        <WeeklySummary v-if="activeTab === 'week'" key="week" />
-        <MonthlySummary v-else-if="activeTab === 'month'" key="month" />
-        <WeightTracker v-else-if="activeTab === 'weight'" key="weight" />
-      </transition>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref } from 'vue'
+import NavBar from '@/components/NavBar.vue'
+import BottomNav from '@/components/BottomNav.vue'
 import WeeklySummary from '@/components/WeeklySummary.vue'
 import MonthlySummary from '@/components/MonthlySummary.vue'
 import WeightTracker from '@/components/WeightTracker.vue'
@@ -48,94 +20,91 @@ const tabs: Tab[] = [
 const activeTab = ref('week')
 </script>
 
+<template>
+  <div class="page-wrapper">
+    <NavBar />
+    <div class="container">
+      <div class="history-page">
+        <header class="page-header">
+          <h2>History</h2>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            @click="activeTab = tab.id"
+            :class="['tab-btn', { active: activeTab === tab.id }]"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+          <transition name="fade" mode="out-in">
+            <WeeklySummary v-if="activeTab === 'week'" key="week" />
+            <MonthlySummary v-else-if="activeTab === 'month'" key="month" />
+            <WeightTracker v-else-if="activeTab === 'weight'" key="weight" />
+          </transition>
+        </div>
+      </div>
+    </div>
+    <BottomNav />
+  </div>
+</template>
+
 <style scoped>
-.history-page {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+.page-wrapper {
   min-height: 100vh;
 }
 
+.history-page {
+  padding: 1.5rem 0;
+}
+
 .page-header {
-  text-align: center;
-  margin-bottom: 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
 }
 
-.page-header h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.subtitle {
-  font-size: 1.125rem;
-  color: var(--text-secondary);
+.page-header h2 {
   margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
 }
 
 /* Tabs */
 .tabs {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 1rem;
   margin-bottom: 2rem;
   flex-wrap: wrap;
-  padding: 0 1rem;
 }
 
 .tab-btn {
-  padding: 0.875rem 1.75rem;
-  border: 2px solid var(--border-color);
-  background: var(--card-bg);
-  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: var(--bg-light);
+  border-radius: 8px;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: var(--text-secondary);
-  position: relative;
-  overflow: hidden;
+  transition: all 0.2s;
+  color: var(--text-primary);
 }
 
-.tab-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  z-index: 0;
-}
-
-.tab-btn span {
-  position: relative;
-  z-index: 1;
-}
-
-.tab-btn:hover:not(.active) {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+.tab-btn:hover {
+  background: var(--fill-tertiary);
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-  border-color: var(--primary-color);
+  background: var(--primary-color);
   color: white;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
-  transform: translateY(-2px);
-}
-
-.tab-btn.active::before {
-  opacity: 1;
 }
 
 /* Tab Content */
@@ -147,7 +116,7 @@ const activeTab = ref('week')
 /* Fade Transition */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
 .fade-enter-from,
@@ -157,42 +126,20 @@ const activeTab = ref('week')
 
 @media (max-width: 768px) {
   .history-page {
-    padding: 1.5rem 0.5rem;
+    padding: 1rem 0;
   }
 
-  .page-header h1 {
-    font-size: 2rem;
-  }
-
-  .subtitle {
-    font-size: 1rem;
+  .page-header h2 {
+    font-size: 1.5rem;
   }
 
   .tabs {
     flex-direction: column;
-    gap: 0.75rem;
-    padding: 0;
+    gap: 0.5rem;
   }
 
   .tab-btn {
     width: 100%;
-    padding: 1rem;
-  }
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .tab-btn {
-    background: var(--card-bg, #1e293b);
-    border-color: var(--border-color, #334155);
-  }
-
-  .tab-btn:hover:not(.active) {
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-  }
-
-  .tab-btn.active {
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.5);
   }
 }
 </style>
