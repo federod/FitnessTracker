@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './authStore'
 import type { FoodEntry, FoodItem, NutritionSummary } from '@/types'
+import { getLocalDateString } from '@/utils/date'
 
 export const useFoodStore = defineStore('food', () => {
   const foodEntries = ref<FoodEntry[]>([])
@@ -96,7 +97,7 @@ export const useFoodStore = defineStore('food', () => {
 
   // Fetch food entries for a specific date
   async function fetchEntriesByDate(date?: string) {
-    const targetDate = date || new Date().toISOString().split('T')[0]
+    const targetDate = date || getLocalDateString()
     isLoading.value = true
     error.value = null
 
@@ -155,7 +156,7 @@ export const useFoodStore = defineStore('food', () => {
 
   // Get today's nutrition summary
   function getTodaysSummary(): NutritionSummary {
-    const today = new Date().toISOString().split('T')[0]
+    const today = getLocalDateString()
     const todaysEntries = foodEntries.value.filter(entry => entry.date === today)
 
     return todaysEntries.reduce(
@@ -174,7 +175,7 @@ export const useFoodStore = defineStore('food', () => {
 
   // Get entries by meal type
   function getEntriesByMealType(mealType: string, date?: string): FoodEntry[] {
-    const targetDate = date || new Date().toISOString().split('T')[0]
+    const targetDate = date || getLocalDateString()
     return foodEntries.value.filter(
       entry => entry.mealType === mealType && entry.date === targetDate
     )

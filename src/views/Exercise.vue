@@ -5,6 +5,7 @@ import { useUserStore } from '@/stores/userStore'
 import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
 import type { Exercise } from '@/types'
+import { getLocalDateString } from '@/utils/date'
 
 const exerciseStore = useExerciseStore()
 const userStore = useUserStore()
@@ -189,7 +190,7 @@ function updateCalories() {
 }
 
 function addExercise() {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getLocalDateString()
   exerciseStore.addExercise({
     name: exerciseForm.value.name,
     type: exerciseForm.value.type,

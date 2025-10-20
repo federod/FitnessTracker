@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './authStore'
 import type { Exercise } from '@/types'
+import { getLocalDateString } from '@/utils/date'
 
 export const useExerciseStore = defineStore('exercise', () => {
   const exercises = ref<Exercise[]>([])
@@ -20,7 +21,7 @@ export const useExerciseStore = defineStore('exercise', () => {
 
   // Fetch exercises for a specific date
   async function fetchExercisesByDate(date?: string) {
-    const targetDate = date || new Date().toISOString().split('T')[0]
+    const targetDate = date || getLocalDateString()
     isLoading.value = true
     error.value = null
 
@@ -79,7 +80,7 @@ export const useExerciseStore = defineStore('exercise', () => {
 
   // Get today's exercises
   function getTodaysExercises(): Exercise[] {
-    const today = new Date().toISOString().split('T')[0]
+    const today = getLocalDateString()
     return exercises.value.filter(exercise => exercise.date === today)
   }
 

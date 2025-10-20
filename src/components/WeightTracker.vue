@@ -175,6 +175,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useWeightStore } from '@/stores/weightStore'
+import { getLocalDateString } from '@/utils/date'
 
 const weightStore = useWeightStore()
 
@@ -182,7 +183,7 @@ const showAddModal = ref(false)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 
-const today = new Date().toISOString().split('T')[0]
+const today = getLocalDateString()
 
 const newWeight = ref({
   weight: 0,
@@ -230,17 +231,19 @@ function formatDate(dateStr: string): string {
 }
 
 function formatDayLabel(dateStr: string): string {
-  const date = new Date(dateStr)
+  // Parse as local date to avoid timezone issues
+  const [year, month, day] = dateStr.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+
   const today = new Date()
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
 
-  const dateOnly = date.toISOString().split('T')[0]
-  const todayOnly = today.toISOString().split('T')[0]
-  const yesterdayOnly = yesterday.toISOString().split('T')[0]
+  const todayOnly = getLocalDateString(today)
+  const yesterdayOnly = getLocalDateString(yesterday)
 
-  if (dateOnly === todayOnly) return 'Today'
-  if (dateOnly === yesterdayOnly) return 'Yesterday'
+  if (dateStr === todayOnly) return 'Today'
+  if (dateStr === yesterdayOnly) return 'Yesterday'
 
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   return days[date.getDay()]

@@ -6,6 +6,7 @@ import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
 import NutritionProgress from '@/components/NutritionProgress.vue'
 import type { FoodItem } from '@/types'
+import { getLocalDateString } from '@/utils/date'
 
 const foodStore = useFoodStore()
 const userStore = useUserStore()
@@ -113,7 +114,7 @@ function selectFood(food: FoodItem) {
 function addFood() {
   if (!selectedFood.value) return
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = getLocalDateString()
   foodStore.addFoodEntry({
     foodItem: selectedFood.value,
     servings: servings.value,

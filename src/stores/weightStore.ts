@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './authStore'
+import { getLocalDateString } from '@/utils/date'
 
 export interface WeightEntry {
   id: number
@@ -95,7 +96,7 @@ export const useWeightStore = defineStore('weight', () => {
         headers: getAuthHeaders(),
         body: JSON.stringify({
           weight,
-          date: date || new Date().toISOString().split('T')[0],
+          date: date || getLocalDateString(),
           notes,
           updateProfile
         }),
@@ -160,7 +161,7 @@ export const useWeightStore = defineStore('weight', () => {
 
     const now = new Date()
     const pastDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
-    const pastDateStr = pastDate.toISOString().split('T')[0]
+    const pastDateStr = getLocalDateString(pastDate)
 
     const latestWeight = weightEntries.value[0]?.weight
     const pastWeight = weightEntries.value.find(

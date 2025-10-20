@@ -4,6 +4,7 @@ import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
 import { useUserStore } from '@/stores/userStore'
 import { useExerciseStore } from '@/stores/exerciseStore'
+import { getLocalDateString } from '@/utils/date'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -296,7 +297,7 @@ function getDistanceBetweenPoints(pos1: Position, pos2: Position): number {
 }
 
 function saveRun() {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getLocalDateString()
   const durationMinutes = Math.floor(duration.value / 60)
 
   const run = {

@@ -136,6 +136,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
+import { getLocalDateString } from '@/utils/date'
 
 interface DailyData {
   date: string
@@ -287,7 +288,7 @@ function dailyAverage(type: string): string {
 }
 
 function isToday(dateStr: string): boolean {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getLocalDateString()
   return dateStr === today
 }
 
@@ -326,7 +327,7 @@ async function fetchMonthlyData() {
 
   try {
     const firstDay = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth(), 1)
-    const dateStr = firstDay.toISOString().split('T')[0]
+    const dateStr = getLocalDateString(firstDay)
 
     const response = await fetch(
       `/.netlify/functions/historical-data?type=month&date=${dateStr}`,

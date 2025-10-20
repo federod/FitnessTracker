@@ -2,6 +2,14 @@ import { Handler } from '@netlify/functions'
 import { getDb, exercises } from '../../src/db'
 import { eq, and, desc, sql } from 'drizzle-orm'
 
+// Helper to get local date string (not UTC)
+function getLocalDateString(date: Date = new Date()): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export const handler: Handler = async (event) => {
   // Handle CORS
   if (event.httpMethod === 'OPTIONS') {
@@ -74,7 +82,7 @@ export const handler: Handler = async (event) => {
     // GET - Fetch exercise entries
     if (event.httpMethod === 'GET') {
       const params = event.queryStringParameters || {}
-      const date = params.date || new Date().toISOString().split('T')[0]
+      const date = params.date || getLocalDateString()
       const startDate = params.startDate
       const endDate = params.endDate
 

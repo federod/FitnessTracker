@@ -124,6 +124,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
+import { getLocalDateString } from '@/utils/date'
 
 interface DailyData {
   date: string
@@ -240,7 +241,7 @@ async function fetchWeeklyData() {
   weeklyData.value = null // Clear old data before fetching new data
 
   try {
-    const startDate = currentWeekStart.value.toISOString().split('T')[0]
+    const startDate = getLocalDateString(currentWeekStart.value)
 
     const response = await fetch(
       `/.netlify/functions/historical-data?type=week&date=${startDate}`,
