@@ -122,7 +122,6 @@
 </template>
 
 <script setup lang="ts">
-// v1.1.0 - Fixed timezone bug for isToday function
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -202,12 +201,6 @@ function isToday(dateStr: string): boolean {
   const month = String(today.getMonth() + 1).padStart(2, '0')
   const day = String(today.getDate()).padStart(2, '0')
   const todayStr = `${year}-${month}-${day}`
-
-  // Debug logging
-  console.log('[isToday] Checking:', dateStr)
-  console.log('[isToday] Today is:', todayStr)
-  console.log('[isToday] Match:', dateStr === todayStr)
-
   return dateStr === todayStr
 }
 
@@ -249,8 +242,6 @@ async function fetchWeeklyData() {
   try {
     const startDate = currentWeekStart.value.toISOString().split('T')[0]
 
-    console.log('[fetchWeeklyData] Requesting week starting:', startDate)
-
     const response = await fetch(
       `/.netlify/functions/historical-data?type=week&date=${startDate}`,
       {
@@ -267,11 +258,6 @@ async function fetchWeeklyData() {
     if (!response.ok) {
       throw new Error(data.error || 'Failed to fetch weekly data')
     }
-
-    console.log('[fetchWeeklyData] Received dailyData dates:')
-    data.dailyData.forEach((day: any, i: number) => {
-      console.log(`  [${i}] ${day.date}`)
-    })
 
     weeklyData.value = data
   } catch (err) {
