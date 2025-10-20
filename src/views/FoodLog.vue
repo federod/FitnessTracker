@@ -68,8 +68,9 @@ const filteredFoods = computed(() => {
     return apiResults.value
   }
 
-  // Otherwise show local foods filtered by query
-  if (!searchQuery.value) return foodStore.commonFoods
+  // Only show foods when user is actively searching
+  if (!searchQuery.value) return []
+
   return foodStore.commonFoods.filter(food =>
     food.name.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
