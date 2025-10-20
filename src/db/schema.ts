@@ -28,6 +28,11 @@ export const userProfiles = pgTable('user_profiles', {
   activityLevel: activityLevelEnum('activity_level').notNull(),
   goal: goalEnum('goal').notNull(),
   targetWeight: real('target_weight'),
+  useCustomMacros: integer('use_custom_macros').notNull().default(0), // 0 = use calculated, 1 = use custom
+  customCalories: integer('custom_calories').default(0),
+  customProtein: integer('custom_protein').default(0),
+  customCarbs: integer('custom_carbs').default(0),
+  customFat: integer('custom_fat').default(0),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
@@ -69,6 +74,16 @@ export const exercises = pgTable('exercises', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
+// Weight history table for tracking weight changes over time
+export const weightHistory = pgTable('weight_history', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  weight: real('weight').notNull(), // in kg
+  date: date('date').notNull(),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
 // Types
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
@@ -80,3 +95,5 @@ export type FoodEntry = typeof foodEntries.$inferSelect
 export type NewFoodEntry = typeof foodEntries.$inferInsert
 export type Exercise = typeof exercises.$inferSelect
 export type NewExercise = typeof exercises.$inferInsert
+export type WeightHistory = typeof weightHistory.$inferSelect
+export type NewWeightHistory = typeof weightHistory.$inferInsert
