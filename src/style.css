@@ -254,6 +254,26 @@ h6 { font-size: 15px; font-weight: 600; }
   transform: scale(0.99);
 }
 
+/* Card Headers - Global Style */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.card-icon {
+  font-size: 1.75rem;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {

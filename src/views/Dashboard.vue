@@ -214,24 +214,7 @@ const dateLabel = computed(() => {
   grid-column: span 2;
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.card-header h3 {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.card-icon {
-  font-size: 1.75rem;
-}
+/* Card header styles now in global style.css */
 
 .exercise-summary {
   display: flex;
