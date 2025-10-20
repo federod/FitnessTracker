@@ -51,11 +51,11 @@
       </div>
 
       <!-- Daily Breakdown -->
-      <div class="daily-breakdown">
+      <div class="daily-breakdown" v-if="weeklyData && weeklyData.dailyData">
         <h3>Daily Breakdown</h3>
         <div
-          v-for="day in weeklyData?.dailyData"
-          :key="day.date"
+          v-for="day in weeklyData.dailyData"
+          :key="`${weeklyData.startDate}-${day.date}`"
           class="day-card"
           :class="{ 'is-today': isToday(day.date) }"
         >
