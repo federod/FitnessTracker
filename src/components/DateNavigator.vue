@@ -1,6 +1,6 @@
 <template>
   <div class="date-navigator">
-    <button @click="previousDay" class="nav-btn" :disabled="isToday && !canGoFuture">
+    <button @click="previousDay" class="nav-btn">
       <span>←</span>
     </button>
 
