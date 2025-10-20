@@ -25,27 +25,27 @@
         <div class="totals-grid">
           <div class="total-item">
             <span class="label">Calories</span>
-            <span class="value">{{ weeklyData?.totalCalories?.toLocaleString() || 0 }}</span>
+            <span class="value">{{ weeklyData?.totals?.calories?.toLocaleString() || 0 }}</span>
           </div>
           <div class="total-item">
             <span class="label">Protein</span>
-            <span class="value">{{ weeklyData?.totalProtein?.toFixed(1) || 0 }}g</span>
+            <span class="value">{{ weeklyData?.totals?.protein?.toFixed(1) || 0 }}g</span>
           </div>
           <div class="total-item">
             <span class="label">Carbs</span>
-            <span class="value">{{ weeklyData?.totalCarbs?.toFixed(1) || 0 }}g</span>
+            <span class="value">{{ weeklyData?.totals?.carbs?.toFixed(1) || 0 }}g</span>
           </div>
           <div class="total-item">
             <span class="label">Fat</span>
-            <span class="value">{{ weeklyData?.totalFat?.toFixed(1) || 0 }}g</span>
+            <span class="value">{{ weeklyData?.totals?.fat?.toFixed(1) || 0 }}g</span>
           </div>
           <div class="total-item">
             <span class="label">Exercise</span>
-            <span class="value">{{ weeklyData?.totalExerciseMinutes || 0 }} min</span>
+            <span class="value">{{ weeklyData?.totals?.exerciseMinutes || 0 }} min</span>
           </div>
           <div class="total-item">
             <span class="label">Burned</span>
-            <span class="value">{{ weeklyData?.totalCaloriesBurned || 0 }} cal</span>
+            <span class="value">{{ weeklyData?.totals?.caloriesBurned || 0 }} cal</span>
           </div>
         </div>
       </div>
