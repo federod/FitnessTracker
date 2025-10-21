@@ -270,6 +270,9 @@ async function lookupExerciseWithAI(exerciseName: string) {
       // Store calories per minute for auto-calculation
       aiCaloriesPerMinute.value = data.exercise.caloriesPerMinute
 
+      // Store AI-generated instructions
+      exerciseForm.value.instructions = data.exercise.instructions || ''
+
       // Calculate calories based on current duration
       if (aiCaloriesPerMinute.value) {
         exerciseForm.value.caloriesBurned = Math.round(

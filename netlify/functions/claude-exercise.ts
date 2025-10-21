@@ -56,20 +56,22 @@ export const handler: Handler = async (event) => {
 
     const message = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1024,
+      max_tokens: 2048,
       messages: [
         {
           role: 'user',
           content: `You are a fitness expert. Given an exercise name, provide the following information:
 1. Exercise type (must be exactly one of: cardio, strength, flexibility, sports)
 2. Estimated calories burned per minute for an average adult
+3. Clear step-by-step instructions on how to perform the exercise correctly
 
 Exercise: "${exerciseName}"
 
 Respond ONLY with valid JSON in this exact format (no markdown, no explanation):
 {
   "type": "cardio",
-  "caloriesPerMinute": 8.5
+  "caloriesPerMinute": 8.5,
+  "instructions": "Step-by-step instructions here. Keep it clear and concise with numbered steps or bullet points."
 }
 
 Guidelines:
@@ -81,7 +83,9 @@ Guidelines:
 - For strength training, use 5-8 calories per minute
 - For cardio, use 8-12 calories per minute
 - For flexibility, use 3-5 calories per minute
-- For sports, use 7-12 calories per minute depending on intensity`
+- For sports, use 7-12 calories per minute depending on intensity
+- Instructions should include proper form, common mistakes to avoid, and key points for safety
+- Keep instructions concise but informative (3-6 steps)`
         }
       ]
     })
@@ -105,7 +109,8 @@ Guidelines:
         exercise: {
           name: exerciseName,
           type: exerciseData.type,
-          caloriesPerMinute: exerciseData.caloriesPerMinute
+          caloriesPerMinute: exerciseData.caloriesPerMinute,
+          instructions: exerciseData.instructions || 'No instructions available.'
         }
       }),
       headers: {
