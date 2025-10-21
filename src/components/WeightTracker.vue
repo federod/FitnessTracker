@@ -494,6 +494,18 @@ onMounted(() => {
   transition: all 0.2s;
 }
 
+/* Fix calendar icon visibility in dark mode */
+.form-group input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(var(--calendar-icon-invert, 0));
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  .form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
+}
+
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
