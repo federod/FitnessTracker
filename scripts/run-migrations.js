@@ -157,6 +157,31 @@ async function runMigrations() {
       console.log('ℹ️  Unit system column might already exist or error:', err.message)
     }
 
+    // Migration 6: Fix weight_history column types
+    console.log('\n📝 Running Migration 6: Fix weight_history column types...')
+
+    try {
+      // Change weight column from integer to real to support decimal values
+      await sql`
+        ALTER TABLE weight_history
+        ALTER COLUMN weight TYPE real
+      `
+      console.log('✅ Changed weight column type to real (decimal)')
+
+      // Ensure user_id is NOT NULL
+      await sql`
+        ALTER TABLE weight_history
+        ALTER COLUMN user_id SET NOT NULL
+      `
+      console.log('✅ Set user_id column to NOT NULL')
+    } catch (err) {
+      if (err.message?.includes('cannot be cast automatically')) {
+        console.log('ℹ️  Weight column type might already be correct')
+      } else {
+        console.log('ℹ️  Column constraints might already be correct:', err.message)
+      }
+    }
+
     console.log('\n🎉 All migrations completed successfully!')
     console.log('\n📊 Database is ready to use!')
 
