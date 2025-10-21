@@ -351,47 +351,6 @@ function getExerciseIcon(type: Exercise['type']) {
   return icons[type]
 }
 
-// Get YouTube video ID for exercise tutorials
-function getVideoIdForExercise(exerciseName: string): string {
-  // Map of exercise names to curated YouTube tutorial video IDs
-  const videoMap: Record<string, string> = {
-    'Running (6 mph)': 'wRkeBVMQSgg', // Proper running form
-    'running': 'wRkeBVMQSgg',
-    'Walking (3 mph)': 'dvckr5L9DPQ', // Walking technique
-    'walking': 'dvckr5L9DPQ',
-    'Cycling (moderate)': 'EZdGe-EY06A', // Indoor cycling
-    'cycling': 'EZdGe-EY06A',
-    'Swimming (moderate)': 'Z8k2Xy5fZE8', // Swimming basics
-    'swimming': 'Z8k2Xy5fZE8',
-    'Weight Training': 'R6gZoAzAhCg', // Weight training basics
-    'weight training': 'R6gZoAzAhCg',
-    'Yoga': 'v7AYKMP6rOE', // Yoga for beginners
-    'yoga': 'v7AYKMP6rOE',
-    'HIIT': 'ml6cT4AZdqI', // HIIT workout
-    'hiit': 'ml6cT4AZdqI',
-    'Jump Rope': 'FJmRQ5iTXKE', // Jump rope tutorial
-    'jump rope': 'FJmRQ5iTXKE',
-    'Reverse Incline Walks': 'K-CrEi0ymMg', // Knees Over Toes - Reverse walking
-    'reverse incline walks': 'K-CrEi0ymMg',
-    'Rowing Machine': '4OlIp0b1Yfs', // Rowing form
-    'rowing machine': '4OlIp0b1Yfs',
-    'Hammer Curl': 'zC3nLlEvin4', // Hammer curls
-    'hammer curl': 'zC3nLlEvin4',
-    'bicep curl': 'ykJmrZ5v0Oo',
-    'squat': 'YaXPRqUwItQ', // Proper squat form
-    'deadlift': 'op9kVnSso6Q',
-    'bench press': 'rT7DgCr-3pg',
-    'pull up': 'eGo4IYlbE5g',
-    'push up': 'IODxDxX7oi4',
-    'plank': '_L3gNaAVjQ4',
-    'burpee': 'dZgVxmf6jkA',
-    'lunge': 'QOVaHwm-Q6U'
-  }
-
-  // Try exact match first, then lowercase match
-  const lowerName = exerciseName.toLowerCase()
-  return videoMap[exerciseName] || videoMap[lowerName] || 'ml6cT4AZdqI' // Default to a general fitness video
-}
 </script>
 
 <template>
@@ -615,20 +574,6 @@ function getVideoIdForExercise(exerciseName: string): string {
               <label>How to Perform:</label>
               <div class="instructions-display">
                 <p>{{ exerciseForm.instructions }}</p>
-              </div>
-            </div>
-
-            <div v-if="exerciseForm.name" class="form-group">
-              <label>Video Tutorial:</label>
-              <div class="video-tutorial">
-                <iframe
-                  :src="`https://www.youtube.com/embed/${getVideoIdForExercise(exerciseForm.name)}`"
-                  title="Exercise Tutorial"
-                  frameborder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowfullscreen
-                  class="tutorial-video"
-                ></iframe>
               </div>
             </div>
 
@@ -1178,23 +1123,6 @@ textarea {
   opacity: 0.95;
 }
 
-.video-tutorial {
-  position: relative;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio */
-  height: 0;
-  overflow: hidden;
-  border-radius: 8px;
-  background: var(--bg-light);
-}
-
-.tutorial-video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 8px;
-}
 
 @media (max-width: 768px) {
   .search-filters {
