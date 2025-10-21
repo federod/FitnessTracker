@@ -13,6 +13,8 @@ const userStore = useUserStore()
 const dateStore = useDateStore()
 
 const showAddModal = ref(false)
+const showEditModal = ref(false)
+const editingExercise = ref<Exercise | null>(null)
 const savedRuns = ref<any[]>([])
 const exerciseForm = ref({
   name: '',
@@ -27,7 +29,9 @@ const selectedMuscle = ref('')
 const selectedDifficulty = ref('')
 const apiExercises = ref<any[]>([])
 const isSearching = ref(false)
+const isLookingUpExercise = ref(false)
 const searchError = ref('')
+const aiCaloriesPerMinute = ref<number | null>(null)
 
 // MET (Metabolic Equivalent of Task) values for common exercises
 // MET = ratio of work metabolic rate to resting metabolic rate
@@ -122,6 +126,20 @@ function formatRunDate(dateString: string) {
 // Watch for search changes
 watch([selectedMuscle, selectedDifficulty], () => {
   searchExercises()
+})
+
+// Watch for exercise name changes to trigger AI lookup
+let aiLookupTimeout: ReturnType<typeof setTimeout> | null = null
+watch(() => exerciseForm.value.name, (newName) => {
+  if (aiLookupTimeout) {
+    clearTimeout(aiLookupTimeout)
+  }
+
+  if (newName && newName.length >= 3) {
+    aiLookupTimeout = setTimeout(() => {
+      lookupExerciseWithAI(newName)
+    }, 800) // Debounce for 800ms
+  }
 })
 
 async function searchExercises() {
@@ -227,6 +245,92 @@ function closeModal() {
   selectedMuscle.value = ''
   selectedDifficulty.value = ''
   searchError.value = ''
+  aiCaloriesPerMinute.value = null
+}
+
+// AI Exercise Lookup
+async function lookupExerciseWithAI(exerciseName: string) {
+  isLookingUpExercise.value = true
+
+  try {
+    const response = await fetch('/.netlify/functions/claude-exercise', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ exerciseName })
+    })
+
+    const data = await response.json()
+
+    if (response.ok && data.exercise) {
+      // Update form with AI-detected type
+      exerciseForm.value.type = data.exercise.type as Exercise['type']
+
+      // Store calories per minute for auto-calculation
+      aiCaloriesPerMinute.value = data.exercise.caloriesPerMinute
+
+      // Calculate calories based on current duration
+      if (aiCaloriesPerMinute.value) {
+        exerciseForm.value.caloriesBurned = Math.round(
+          aiCaloriesPerMinute.value * exerciseForm.value.duration
+        )
+      }
+    }
+  } catch (error) {
+    console.error('AI exercise lookup error:', error)
+  } finally {
+    isLookingUpExercise.value = false
+  }
+}
+
+// Watch duration changes to auto-update calories if AI lookup was successful
+watch(() => exerciseForm.value.duration, (newDuration) => {
+  if (aiCaloriesPerMinute.value && !showEditModal.value) {
+    exerciseForm.value.caloriesBurned = Math.round(aiCaloriesPerMinute.value * newDuration)
+  }
+})
+
+// Edit Exercise Functions
+function openEditModal(exercise: Exercise) {
+  editingExercise.value = exercise
+  exerciseForm.value = {
+    name: exercise.name,
+    type: exercise.type,
+    duration: exercise.duration,
+    caloriesBurned: exercise.caloriesBurned,
+    notes: exercise.notes || '',
+    instructions: ''
+  }
+  showEditModal.value = true
+}
+
+function closeEditModal() {
+  showEditModal.value = false
+  editingExercise.value = null
+  exerciseForm.value = {
+    name: '',
+    type: 'cardio',
+    duration: 30,
+    caloriesBurned: 0,
+    notes: '',
+    instructions: ''
+  }
+  aiCaloriesPerMinute.value = null
+}
+
+async function updateExercise() {
+  if (!editingExercise.value) return
+
+  await exerciseStore.updateExercise(editingExercise.value.id, {
+    name: exerciseForm.value.name,
+    type: exerciseForm.value.type,
+    duration: exerciseForm.value.duration,
+    caloriesBurned: exerciseForm.value.caloriesBurned,
+    notes: exerciseForm.value.notes
+  })
+
+  closeEditModal()
 }
 
 function removeExercise(id: string) {
@@ -338,7 +442,10 @@ function getVideoIdForExercise(exerciseName: string): string {
               <div class="exercise-calories">
                 {{ exercise.caloriesBurned }} cal
               </div>
-              <button @click="removeExercise(exercise.id)" class="delete-btn">×</button>
+              <div class="exercise-actions">
+                <button @click="openEditModal(exercise)" class="edit-btn">✎</button>
+                <button @click="removeExercise(exercise.id)" class="delete-btn">×</button>
+              </div>
             </div>
           </div>
         </div>
@@ -448,6 +555,10 @@ function getVideoIdForExercise(exerciseName: string): string {
             </div>
           </div>
 
+          <div v-if="isLookingUpExercise" class="ai-lookup-indicator">
+            🤖 AI is analyzing your exercise...
+          </div>
+
           <div v-if="userStore.profile" class="calorie-info">
             <strong>ℹ️ Personalized Calorie Calculation</strong>
             <p>Calories are calculated based on your weight ({{ userStore.profile.weight }}kg) using MET values. Change duration to see updated calories.</p>
@@ -457,6 +568,9 @@ function getVideoIdForExercise(exerciseName: string): string {
             <div class="form-group">
               <label>Exercise Name:</label>
               <input v-model="exerciseForm.name" type="text" required />
+              <small v-if="aiCaloriesPerMinute" class="ai-hint">
+                🤖 AI detected type and estimated calories
+              </small>
             </div>
 
             <div class="form-group">
@@ -519,6 +633,60 @@ function getVideoIdForExercise(exerciseName: string): string {
             </div>
 
             <button type="submit">Add Exercise</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Exercise Modal -->
+    <div v-if="showEditModal" class="modal-overlay" @click="closeEditModal">
+      <div class="modal" @click.stop>
+        <div class="modal-header">
+          <h3>Edit Exercise</h3>
+          <button @click="closeEditModal" class="close-btn">×</button>
+        </div>
+        <div class="modal-body">
+          <div v-if="isLookingUpExercise" class="ai-lookup-indicator">
+            🤖 AI is analyzing your exercise...
+          </div>
+
+          <form @submit.prevent="updateExercise" class="exercise-form">
+            <div class="form-group">
+              <label>Exercise Name:</label>
+              <input v-model="exerciseForm.name" type="text" required />
+            </div>
+
+            <div class="form-group">
+              <label>Type:</label>
+              <select v-model="exerciseForm.type" required>
+                <option value="cardio">Cardio</option>
+                <option value="strength">Strength</option>
+                <option value="flexibility">Flexibility</option>
+                <option value="sports">Sports</option>
+                <option value="knees-over-toes">Knees Over Toes</option>
+                <option value="plyos">Plyometrics</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Duration (minutes):</label>
+              <input v-model.number="exerciseForm.duration" type="number" min="1" required />
+            </div>
+
+            <div class="form-group">
+              <label>Calories Burned:</label>
+              <input v-model.number="exerciseForm.caloriesBurned" type="number" min="0" required />
+              <small v-if="aiCaloriesPerMinute" class="ai-hint">
+                🤖 AI estimated: {{ aiCaloriesPerMinute }} cal/min
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label>Notes (optional):</label>
+              <textarea v-model="exerciseForm.notes" rows="3"></textarea>
+            </div>
+
+            <button type="submit">Update Exercise</button>
           </form>
         </div>
       </div>
@@ -688,6 +856,34 @@ function getVideoIdForExercise(exerciseName: string): string {
   font-size: 1.1rem;
 }
 
+.exercise-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.edit-btn {
+  background: var(--ios-blue);
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all var(--transition-fast);
+}
+
+.edit-btn:active {
+  transform: scale(0.9);
+  opacity: 0.7;
+}
+
 .delete-btn {
   background: var(--ios-red);
   color: white;
@@ -708,6 +904,34 @@ function getVideoIdForExercise(exerciseName: string): string {
 .delete-btn:active {
   transform: scale(0.9);
   opacity: 0.7;
+}
+
+.ai-lookup-indicator {
+  background: linear-gradient(135deg, var(--ios-blue), #5856d6);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-weight: 500;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.ai-hint {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--ios-blue);
+  font-weight: 500;
+  font-size: 0.85rem;
 }
 
 /* Modal Styles */

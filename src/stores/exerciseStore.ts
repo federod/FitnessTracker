@@ -134,6 +134,46 @@ export const useExerciseStore = defineStore('exercise', () => {
     }
   }
 
+  // Update exercise
+  async function updateExercise(id: string, updates: {
+    name?: string
+    type?: Exercise['type']
+    duration?: number
+    caloriesBurned?: number
+    notes?: string
+  }) {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await fetch('/.netlify/functions/exercise-entries', {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ id, ...updates }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update exercise')
+      }
+
+      // Update local state
+      const index = exercises.value.findIndex(exercise => exercise.id === id)
+      if (index !== -1 && data.exercise) {
+        exercises.value[index] = { ...exercises.value[index], ...data.exercise }
+      }
+
+      return { success: true }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to update exercise'
+      console.error('Update exercise error:', err)
+      return { success: false, error: error.value }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   // Remove exercise
   async function removeExercise(id: string) {
     isLoading.value = true
@@ -178,6 +218,7 @@ export const useExerciseStore = defineStore('exercise', () => {
     fetchExercisesByDate,
     fetchExercisesByDateRange,
     addExercise,
+    updateExercise,
     removeExercise,
     loadFromLocalStorage
   }

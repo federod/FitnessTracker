@@ -18,7 +18,7 @@ export const handler: Handler = async (event) => {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       },
       body: '',
     }
@@ -139,6 +139,61 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 200,
         body: JSON.stringify({ exercise: entry }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
+    }
+
+    // PUT - Update exercise entry
+    if (event.httpMethod === 'PUT') {
+      const body = JSON.parse(event.body || '{}')
+      const { id, name, type, duration, caloriesBurned, notes } = body
+
+      if (!id) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: 'Entry ID required' }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      }
+
+      const updateData: any = {}
+      if (name !== undefined) updateData.name = name
+      if (type !== undefined) updateData.type = type
+      if (duration !== undefined) updateData.duration = duration
+      if (caloriesBurned !== undefined) updateData.caloriesBurned = caloriesBurned
+      if (notes !== undefined) updateData.notes = notes
+
+      const [updatedEntry] = await db
+        .update(exercises)
+        .set(updateData)
+        .where(
+          and(
+            eq(exercises.id, parseInt(id)),
+            eq(exercises.userId, parseInt(userId))
+          )
+        )
+        .returning()
+
+      if (!updatedEntry) {
+        return {
+          statusCode: 404,
+          body: JSON.stringify({ error: 'Entry not found' }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      }
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ exercise: updatedEntry }),
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
