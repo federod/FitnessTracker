@@ -6,6 +6,8 @@ import DateNavigator from '@/components/DateNavigator.vue'
 import { useUserStore } from '@/stores/userStore'
 import { useExerciseStore } from '@/stores/exerciseStore'
 import { useDateStore } from '@/stores/dateStore'
+import { displayDistance, getDistanceUnit, formatPace, getPaceUnit } from '@/utils/units'
+import type { UnitSystem } from '@/utils/units'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -37,8 +39,16 @@ const timerInterval = ref<number | null>(null)
 const hasLocationPermission = ref(false)
 const locationError = ref('')
 
+// Unit system for display
+const unitSystem = computed<UnitSystem>(() => userStore.profile?.unitSystem || 'metric')
+const distanceUnit = computed(() => getDistanceUnit(unitSystem.value))
+const paceUnit = computed(() => getPaceUnit(unitSystem.value))
+
 // Computed stats
-const distanceKm = computed(() => (distance.value / 1000).toFixed(2))
+const distanceKm = computed(() => {
+  const km = distance.value / 1000
+  return displayDistance(km, unitSystem.value)
+})
 const durationFormatted = computed(() => {
   const hours = Math.floor(duration.value / 3600)
   const minutes = Math.floor((duration.value % 3600) / 60)
@@ -57,7 +67,9 @@ const pace = computed(() => {
   const paceMinPerKm = minutes / km
   const paceMin = Math.floor(paceMinPerKm)
   const paceSec = Math.floor((paceMinPerKm - paceMin) * 60)
-  return `${paceMin}:${paceSec.toString().padStart(2, '0')}`
+  const paceStr = `${paceMin}:${paceSec.toString().padStart(2, '0')}`
+  // Convert pace from min/km to user's preferred unit
+  return formatPace(paceStr, unitSystem.value)
 })
 
 const caloriesBurned = computed(() => {
@@ -318,15 +330,15 @@ function saveRun() {
 
   // Add to exercise log for daily stats (using selected date)
   exerciseStore.addExercise({
-    name: `Running - ${distanceKm.value} km`,
+    name: `Running - ${distanceKm.value} ${distanceUnit.value}`,
     type: 'cardio',
     duration: durationMinutes,
     caloriesBurned: caloriesBurned.value,
     date: dateStore.selectedDate,
-    notes: `Pace: ${pace.value} min/km`
+    notes: `Pace: ${pace.value} ${paceUnit.value}`
   })
 
-  alert(`Run saved! ${distanceKm.value} km in ${durationFormatted.value}`)
+  alert(`Run saved! ${distanceKm.value} ${distanceUnit.value} in ${durationFormatted.value}`)
 }
 
 function resetTracking() {
@@ -365,7 +377,7 @@ function resetTracking() {
           <div class="card stat-card">
             <div class="stat-label">Distance</div>
             <div class="stat-value">{{ distanceKm }}</div>
-            <div class="stat-unit">km</div>
+            <div class="stat-unit">{{ distanceUnit }}</div>
           </div>
           <div class="card stat-card">
             <div class="stat-label">Duration</div>
@@ -375,7 +387,7 @@ function resetTracking() {
           <div class="card stat-card">
             <div class="stat-label">Pace</div>
             <div class="stat-value">{{ pace }}</div>
-            <div class="stat-unit">min/km</div>
+            <div class="stat-unit">{{ paceUnit }}</div>
           </div>
           <div class="card stat-card">
             <div class="stat-label">Calories</div>

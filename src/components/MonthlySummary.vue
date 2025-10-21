@@ -97,13 +97,13 @@
             class="weight-entry"
           >
             <span class="weight-date">{{ formatDate(entry.date) }}</span>
-            <span class="weight-value">{{ entry.weight }} kg</span>
+            <span class="weight-value">{{ displayWeight(entry.weight, unitSystem) }} {{ weightUnit }}</span>
             <span v-if="entry.notes" class="weight-notes">{{ entry.notes }}</span>
           </div>
         </div>
         <div v-if="weightChange !== null" class="weight-change">
           <span :class="weightChange < 0 ? 'loss' : 'gain'">
-            {{ weightChange > 0 ? '+' : '' }}{{ weightChange.toFixed(1) }} kg this month
+            {{ weightChange > 0 ? '+' : '' }}{{ weightChange.toFixed(1) }} {{ weightUnit }} this month
           </span>
         </div>
       </div>
@@ -136,7 +136,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
+import { useUserStore } from '@/stores/userStore'
 import { getLocalDateString } from '@/utils/date'
+import { displayWeight, getWeightUnit } from '@/utils/units'
+import type { UnitSystem } from '@/utils/units'
 
 interface DailyData {
   date: string
@@ -178,10 +181,15 @@ interface WeekData {
 }
 
 const authStore = useAuthStore()
+const userStore = useUserStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const monthlyData = ref<MonthlyData | null>(null)
 const currentMonth = ref(new Date())
+
+// Unit system for display
+const unitSystem = computed<UnitSystem>(() => userStore.profile?.unitSystem || 'metric')
+const weightUnit = computed(() => getWeightUnit(unitSystem.value))
 
 const monthLabel = computed(() => {
   return currentMonth.value.toLocaleDateString('en-US', {
@@ -205,7 +213,10 @@ const weightChange = computed(() => {
   const sorted = [...monthlyData.value.weightData].sort((a, b) =>
     new Date(a.date).getTime() - new Date(b.date).getTime()
   )
-  return sorted[sorted.length - 1].weight - sorted[0].weight
+  // Convert to display unit
+  const firstWeight = displayWeight(sorted[0].weight, unitSystem.value)
+  const lastWeight = displayWeight(sorted[sorted.length - 1].weight, unitSystem.value)
+  return lastWeight - firstWeight
 })
 
 const weeklyBreakdown = computed((): WeekData[] => {
