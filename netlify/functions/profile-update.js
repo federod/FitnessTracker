@@ -71,7 +71,7 @@ export const handler = async (event) => {
 
     const {
       age, gender, height, weight, activityLevel, goal, targetWeight,
-      useCustomMacros, customCalories, customProtein, customCarbs, customFat
+      useCustomMacros, customCalories, customProtein, customCarbs, customFat, unitSystem
     } = JSON.parse(event.body || '{}')
 
     // Validate required fields
@@ -106,12 +106,12 @@ export const handler = async (event) => {
       INSERT INTO user_profiles (
         user_id, age, gender, height, weight, activity_level, goal, target_weight,
         use_custom_macros, custom_calories, custom_protein, custom_carbs, custom_fat,
-        updated_at
+        unit_system, updated_at
       )
       VALUES (
         ${decoded.userId}, ${age}, ${gender}, ${height}, ${weight}, ${activityLevel}, ${goal}, ${targetWeight || null},
         ${useCustomMacros ? 1 : 0}, ${customCalories || null}, ${customProtein || null}, ${customCarbs || null}, ${customFat || null},
-        NOW()
+        ${unitSystem || 'metric'}, NOW()
       )
       ON CONFLICT (user_id)
       DO UPDATE SET
@@ -127,6 +127,7 @@ export const handler = async (event) => {
         custom_protein = ${customProtein || null},
         custom_carbs = ${customCarbs || null},
         custom_fat = ${customFat || null},
+        unit_system = ${unitSystem || 'metric'},
         updated_at = NOW()
       RETURNING *
     `
