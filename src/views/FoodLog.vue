@@ -258,14 +258,7 @@ function handleScannedFood(food: FoodItem) {
               <h3>Breakfast</h3>
               <div class="meal-actions">
                 <button @click="openBarcodeScanner('breakfast')" class="scan-btn" title="Scan barcode">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="6" width="2" height="12"/>
-                    <rect x="6" y="6" width="1" height="12"/>
-                    <rect x="9" y="6" width="3" height="12"/>
-                    <rect x="14" y="6" width="1" height="12"/>
-                    <rect x="17" y="6" width="2" height="12"/>
-                    <rect x="21" y="6" width="1" height="12"/>
-                  </svg>
+                  📷
                 </button>
                 <button @click="openAddModal('breakfast')">+ Add</button>
               </div>
@@ -297,14 +290,7 @@ function handleScannedFood(food: FoodItem) {
               <h3>Lunch</h3>
               <div class="meal-actions">
                 <button @click="openBarcodeScanner('lunch')" class="scan-btn" title="Scan barcode">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="6" width="2" height="12"/>
-                    <rect x="6" y="6" width="1" height="12"/>
-                    <rect x="9" y="6" width="3" height="12"/>
-                    <rect x="14" y="6" width="1" height="12"/>
-                    <rect x="17" y="6" width="2" height="12"/>
-                    <rect x="21" y="6" width="1" height="12"/>
-                  </svg>
+                  📷
                 </button>
                 <button @click="openAddModal('lunch')">+ Add</button>
               </div>
@@ -336,14 +322,7 @@ function handleScannedFood(food: FoodItem) {
               <h3>Dinner</h3>
               <div class="meal-actions">
                 <button @click="openBarcodeScanner('dinner')" class="scan-btn" title="Scan barcode">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="6" width="2" height="12"/>
-                    <rect x="6" y="6" width="1" height="12"/>
-                    <rect x="9" y="6" width="3" height="12"/>
-                    <rect x="14" y="6" width="1" height="12"/>
-                    <rect x="17" y="6" width="2" height="12"/>
-                    <rect x="21" y="6" width="1" height="12"/>
-                  </svg>
+                  📷
                 </button>
                 <button @click="openAddModal('dinner')">+ Add</button>
               </div>
@@ -375,14 +354,7 @@ function handleScannedFood(food: FoodItem) {
               <h3>Snacks</h3>
               <div class="meal-actions">
                 <button @click="openBarcodeScanner('snack')" class="scan-btn" title="Scan barcode">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="6" width="2" height="12"/>
-                    <rect x="6" y="6" width="1" height="12"/>
-                    <rect x="9" y="6" width="3" height="12"/>
-                    <rect x="14" y="6" width="1" height="12"/>
-                    <rect x="17" y="6" width="2" height="12"/>
-                    <rect x="21" y="6" width="1" height="12"/>
-                  </svg>
+                  📷
                 </button>
                 <button @click="openAddModal('snack')">+ Add</button>
               </div>
@@ -703,8 +675,9 @@ function handleScannedFood(food: FoodItem) {
   background: var(--ios-blue);
   color: white;
   border: none;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.875rem;
   border-radius: 8px;
+  font-size: 1.25rem;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
@@ -712,11 +685,6 @@ function handleScannedFood(food: FoodItem) {
   justify-content: center;
   min-width: 44px;
   height: 36px;
-}
-
-.scan-btn svg {
-  width: 20px;
-  height: 20px;
 }
 
 .scan-btn:hover {
