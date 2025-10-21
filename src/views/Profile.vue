@@ -5,6 +5,8 @@ import { useAuthStore } from '@/stores/authStore'
 import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
 import type { UserProfile } from '@/types'
+import { displayWeight, displayHeight, toKg, toCm, getWeightUnit, getHeightUnit } from '@/utils/units'
+import type { UnitSystem } from '@/utils/units'
 
 const userStore = useUserStore()
 const authStore = useAuthStore()
@@ -32,10 +34,34 @@ const profileForm = ref<UserProfile>({
   customFat: 0
 })
 
+// Unit system computed properties
+const unitSystem = computed<UnitSystem>(() => profileForm.value.unitSystem || 'metric')
+const weightUnit = computed(() => getWeightUnit(unitSystem.value))
+const heightUnit = computed(() => getHeightUnit(unitSystem.value))
+
+// Display forms that handle unit conversions
+const displayForm = ref({
+  weight: 70,
+  height: 170,
+  targetWeight: 70
+})
+
+// Update display form when profile loads or unit system changes
+function updateDisplayForm() {
+  if (userStore.profile) {
+    displayForm.value.weight = displayWeight(userStore.profile.weight, unitSystem.value)
+    displayForm.value.height = displayHeight(userStore.profile.height, unitSystem.value)
+    displayForm.value.targetWeight = userStore.profile.targetWeight
+      ? displayWeight(userStore.profile.targetWeight, unitSystem.value)
+      : displayWeight(userStore.profile.weight, unitSystem.value)
+  }
+}
+
 onMounted(async () => {
   await userStore.fetchProfile()
   if (userStore.profile) {
     profileForm.value = { ...userStore.profile, name: authStore.user?.name || '' }
+    updateDisplayForm()
   } else {
     profileForm.value.name = authStore.user?.name || ''
   }
@@ -44,13 +70,35 @@ onMounted(async () => {
 watch(() => userStore.profile, (newProfile) => {
   if (newProfile) {
     profileForm.value = { ...newProfile, name: authStore.user?.name || '' }
+    updateDisplayForm()
   }
 })
 
+// Watch for unit system changes to update display form
+watch(() => profileForm.value.unitSystem, () => {
+  updateDisplayForm()
+})
+
 async function saveProfile() {
+  // Convert display values back to metric for storage
+  const weightInKg = toKg(displayForm.value.weight, unitSystem.value)
+  const heightInCm = toCm(displayForm.value.height, unitSystem.value)
+  const targetWeightInKg = displayForm.value.targetWeight
+    ? toKg(displayForm.value.targetWeight, unitSystem.value)
+    : undefined
+
   // Exclude name from profile update (name is in users table, not user_profiles)
   const { name, ...profileData } = profileForm.value
-  await userStore.updateProfile(profileData)
+
+  // Update with converted values
+  const dataToSave = {
+    ...profileData,
+    weight: weightInKg,
+    height: heightInCm,
+    targetWeight: targetWeightInKg
+  }
+
+  await userStore.updateProfile(dataToSave)
   if (!userStore.error) {
     alert('Profile saved successfully!')
   } else {
@@ -167,13 +215,13 @@ function cancelEditingName() {
 
               <div class="form-row">
                 <div class="form-group">
-                  <label>Height (cm):</label>
-                  <input v-model.number="profileForm.height" type="number" min="1" required />
+                  <label>Height ({{ heightUnit }}):</label>
+                  <input v-model.number="displayForm.height" type="number" min="1" step="0.1" required />
                 </div>
 
                 <div class="form-group">
-                  <label>Weight (kg):</label>
-                  <input v-model.number="profileForm.weight" type="number" min="1" step="0.1" required />
+                  <label>Weight ({{ weightUnit }}):</label>
+                  <input v-model.number="displayForm.weight" type="number" min="1" step="0.1" required />
                 </div>
               </div>
 
@@ -206,8 +254,8 @@ function cancelEditingName() {
               </div>
 
               <div v-if="profileForm.goal !== 'maintain'" class="form-group">
-                <label>Target Weight (kg):</label>
-                <input v-model.number="profileForm.targetWeight" type="number" min="1" step="0.1" />
+                <label>Target Weight ({{ weightUnit }}):</label>
+                <input v-model.number="displayForm.targetWeight" type="number" min="1" step="0.1" />
               </div>
 
               <div class="form-group custom-macros-section">
