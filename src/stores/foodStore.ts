@@ -230,6 +230,43 @@ export const useFoodStore = defineStore('food', () => {
     }
   }
 
+  // Update food entry
+  async function updateFoodEntry(id: string, updates: { servings?: number; mealType?: string }) {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await fetch('/.netlify/functions/food-entries', {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ id, ...updates }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update food entry')
+      }
+
+      // Update local state
+      const index = foodEntries.value.findIndex(entry => entry.id === id)
+      if (index !== -1 && data.entry) {
+        // Fetch full entry with food item details
+        const entry = foodEntries.value[index]
+        if (updates.servings !== undefined) entry.servings = updates.servings
+        if (updates.mealType !== undefined) entry.mealType = updates.mealType as any
+      }
+
+      return { success: true }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to update food entry'
+      console.error('Update food entry error:', err)
+      return { success: false, error: error.value }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   // Remove food entry
   async function removeFoodEntry(id: string) {
     isLoading.value = true
@@ -284,6 +321,7 @@ export const useFoodStore = defineStore('food', () => {
     fetchEntriesByDate,
     fetchEntriesByDateRange,
     addFoodEntry,
+    updateFoodEntry,
     removeFoodEntry,
     addCustomFood,
     loadFromLocalStorage

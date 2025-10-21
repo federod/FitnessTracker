@@ -18,7 +18,7 @@ export const handler: Handler = async (event) => {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       },
       body: '',
     }
@@ -182,6 +182,58 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 200,
         body: JSON.stringify({ entry }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      }
+    }
+
+    // PUT - Update food entry
+    if (event.httpMethod === 'PUT') {
+      const body = JSON.parse(event.body || '{}')
+      const { id, servings, mealType } = body
+
+      if (!id) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({ error: 'Entry ID required' }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      }
+
+      const updateData: any = {}
+      if (servings !== undefined) updateData.servings = servings
+      if (mealType !== undefined) updateData.mealType = mealType
+
+      const [updatedEntry] = await db
+        .update(foodEntries)
+        .set(updateData)
+        .where(
+          and(
+            eq(foodEntries.id, parseInt(id)),
+            eq(foodEntries.userId, parseInt(userId))
+          )
+        )
+        .returning()
+
+      if (!updatedEntry) {
+        return {
+          statusCode: 404,
+          body: JSON.stringify({ error: 'Entry not found' }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      }
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ entry: updatedEntry }),
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',

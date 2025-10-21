@@ -13,6 +13,8 @@ const foodStore = useFoodStore()
 const userStore = useUserStore()
 const dateStore = useDateStore()
 const showAddModal = ref(false)
+const showEditModal = ref(false)
+const editingEntry = ref<any>(null)
 const selectedFood = ref<FoodItem | null>(null)
 const servings = ref(1)
 const selectedMeal = ref<'breakfast' | 'lunch' | 'dinner' | 'snack'>('breakfast')
@@ -166,6 +168,32 @@ function closeAddModal() {
   searchError.value = ''
 }
 
+function openEditModal(entry: any) {
+  editingEntry.value = entry
+  servings.value = entry.servings
+  selectedMeal.value = entry.mealType
+  showEditModal.value = true
+}
+
+function closeEditModal() {
+  showEditModal.value = false
+  editingEntry.value = null
+  servings.value = 1
+}
+
+async function updateEntry() {
+  if (!editingEntry.value) return
+
+  const result = await foodStore.updateFoodEntry(editingEntry.value.id, {
+    servings: servings.value,
+    mealType: selectedMeal.value
+  })
+
+  if (result.success) {
+    closeEditModal()
+  }
+}
+
 function removeEntry(id: string) {
   if (confirm('Are you sure you want to remove this entry?')) {
     foodStore.removeFoodEntry(id)
@@ -228,7 +256,10 @@ function addCustomFood() {
                 <div class="entry-nutrition">
                   <span>{{ Math.round(entry.foodItem.calories * entry.servings) }} cal</span>
                 </div>
-                <button @click="removeEntry(entry.id)" class="delete-btn">×</button>
+                <div class="entry-actions">
+                  <button @click="openEditModal(entry)" class="edit-btn">✎</button>
+                  <button @click="removeEntry(entry.id)" class="delete-btn">×</button>
+                </div>
               </div>
             </div>
           </div>
@@ -252,7 +283,10 @@ function addCustomFood() {
                 <div class="entry-nutrition">
                   <span>{{ Math.round(entry.foodItem.calories * entry.servings) }} cal</span>
                 </div>
-                <button @click="removeEntry(entry.id)" class="delete-btn">×</button>
+                <div class="entry-actions">
+                  <button @click="openEditModal(entry)" class="edit-btn">✎</button>
+                  <button @click="removeEntry(entry.id)" class="delete-btn">×</button>
+                </div>
               </div>
             </div>
           </div>
@@ -276,7 +310,10 @@ function addCustomFood() {
                 <div class="entry-nutrition">
                   <span>{{ Math.round(entry.foodItem.calories * entry.servings) }} cal</span>
                 </div>
-                <button @click="removeEntry(entry.id)" class="delete-btn">×</button>
+                <div class="entry-actions">
+                  <button @click="openEditModal(entry)" class="edit-btn">✎</button>
+                  <button @click="removeEntry(entry.id)" class="delete-btn">×</button>
+                </div>
               </div>
             </div>
           </div>
@@ -300,7 +337,10 @@ function addCustomFood() {
                 <div class="entry-nutrition">
                   <span>{{ Math.round(entry.foodItem.calories * entry.servings) }} cal</span>
                 </div>
-                <button @click="removeEntry(entry.id)" class="delete-btn">×</button>
+                <div class="entry-actions">
+                  <button @click="openEditModal(entry)" class="edit-btn">✎</button>
+                  <button @click="removeEntry(entry.id)" class="delete-btn">×</button>
+                </div>
               </div>
             </div>
           </div>
@@ -426,6 +466,67 @@ function addCustomFood() {
             </div>
             <button type="submit">Add Food</button>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Food Entry Modal -->
+    <div v-if="showEditModal && editingEntry" class="modal-overlay" @click="closeEditModal">
+      <div class="modal" @click.stop>
+        <div class="modal-header">
+          <h3>Edit Food Entry</h3>
+          <button @click="closeEditModal" class="close-btn">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="edit-entry-form">
+            <div class="food-details">
+              <h4>{{ editingEntry.foodItem.name }}</h4>
+              <p>{{ editingEntry.foodItem.servingSize }}</p>
+              <div class="nutrition-info">
+                <div class="nutrition-item">
+                  <span class="label">Calories:</span>
+                  <span class="value">{{ editingEntry.foodItem.calories }}</span>
+                </div>
+                <div class="nutrition-item">
+                  <span class="label">Protein:</span>
+                  <span class="value">{{ editingEntry.foodItem.protein }}g</span>
+                </div>
+                <div class="nutrition-item">
+                  <span class="label">Carbs:</span>
+                  <span class="value">{{ editingEntry.foodItem.carbs }}g</span>
+                </div>
+                <div class="nutrition-item">
+                  <span class="label">Fat:</span>
+                  <span class="value">{{ editingEntry.foodItem.fat }}g</span>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Servings:</label>
+                <input v-model.number="servings" type="number" min="0.1" step="0.1" />
+              </div>
+
+              <div class="form-group">
+                <label>Meal Type:</label>
+                <select v-model="selectedMeal">
+                  <option value="breakfast">Breakfast</option>
+                  <option value="lunch">Lunch</option>
+                  <option value="dinner">Dinner</option>
+                  <option value="snack">Snack</option>
+                </select>
+              </div>
+
+              <div class="total-nutrition">
+                <h5>Total:</h5>
+                <p>{{ Math.round(editingEntry.foodItem.calories * servings) }} calories</p>
+                <p>P: {{ Math.round(editingEntry.foodItem.protein * servings) }}g |
+                   C: {{ Math.round(editingEntry.foodItem.carbs * servings) }}g |
+                   F: {{ Math.round(editingEntry.foodItem.fat * servings) }}g</p>
+              </div>
+
+              <button @click="updateEntry" class="add-btn">Update Entry</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -555,6 +656,34 @@ function addCustomFood() {
 .entry-nutrition {
   font-weight: 500;
   color: var(--primary-color);
+}
+
+.entry-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.edit-btn {
+  background: var(--ios-blue);
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all var(--transition-fast);
+}
+
+.edit-btn:active {
+  transform: scale(0.9);
+  opacity: 0.7;
 }
 
 .delete-btn {
@@ -774,5 +903,37 @@ function addCustomFood() {
 .form-group label {
   font-weight: 500;
   color: var(--text-primary);
+}
+
+.edit-entry-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.edit-entry-form .food-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.edit-entry-form .food-details h4 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.edit-entry-form .food-details p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.edit-entry-form .form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-color);
+  color: var(--text-primary);
+  font-size: 1rem;
 }
 </style>
