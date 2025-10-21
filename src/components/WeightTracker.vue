@@ -65,13 +65,14 @@
             ></textarea>
           </div>
 
-          <div class="form-group checkbox">
-            <label>
+          <div class="form-group toggle-group">
+            <span class="toggle-label">Update my profile with this weight</span>
+            <label class="toggle-switch">
               <input
                 v-model="newWeight.updateProfile"
                 type="checkbox"
               />
-              <span>Update my profile with this weight</span>
+              <span class="toggle-slider"></span>
             </label>
           </div>
 
@@ -500,25 +501,72 @@ onMounted(() => {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.form-group.checkbox {
+.form-group.toggle-group {
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: var(--bg-color);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
 }
 
-.form-group.checkbox label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  text-transform: none;
-  font-weight: normal;
+.toggle-label {
+  font-size: 1rem;
+  font-weight: 500;
   color: var(--text-color);
 }
 
-.form-group.checkbox input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+/* iOS-style Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 51px;
+  height: 31px;
   cursor: pointer;
+}
+
+.toggle-switch input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 31px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 27px;
+  width: 27px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #34c759;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-switch input:focus + .toggle-slider {
+  box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.2);
 }
 
 .form-actions {
