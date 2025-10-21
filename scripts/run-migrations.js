@@ -129,6 +129,34 @@ async function runMigrations() {
       // Don't fail the entire migration if enum values already exist
     }
 
+    // Migration 5: Add unit system preference
+    console.log('\n📝 Running Migration 5: Add unit system preference...')
+
+    try {
+      // Check if enum exists
+      const checkEnum = await sql`
+        SELECT EXISTS (
+          SELECT 1 FROM pg_type WHERE typname = 'unit_system'
+        )
+      `
+
+      if (!checkEnum[0].exists) {
+        await sql`CREATE TYPE "public"."unit_system" AS ENUM('metric', 'imperial')`
+        console.log('✅ Created unit_system enum')
+      } else {
+        console.log('ℹ️  unit_system enum already exists (skipping)')
+      }
+
+      // Add column
+      await sql`
+        ALTER TABLE user_profiles
+        ADD COLUMN IF NOT EXISTS unit_system "public"."unit_system" DEFAULT 'metric' NOT NULL
+      `
+      console.log('✅ Added unit_system column to user_profiles')
+    } catch (err) {
+      console.log('ℹ️  Unit system column might already exist or error:', err.message)
+    }
+
     console.log('\n🎉 All migrations completed successfully!')
     console.log('\n📊 Database is ready to use!')
 

@@ -37,6 +37,7 @@ export interface UserProfile {
   activityLevel: 'sedentary' | 'light' | 'moderate' | 'active' | 'very-active'
   goal: 'lose' | 'maintain' | 'gain'
   targetWeight?: number
+  unitSystem?: 'metric' | 'imperial'
   useCustomMacros?: boolean
   customCalories?: number
   customProtein?: number

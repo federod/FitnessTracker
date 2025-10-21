@@ -6,6 +6,7 @@ export const exerciseTypeEnum = pgEnum('exercise_type', ['cardio', 'strength', '
 export const genderEnum = pgEnum('gender', ['male', 'female', 'other'])
 export const activityLevelEnum = pgEnum('activity_level', ['sedentary', 'light', 'moderate', 'active', 'very-active'])
 export const goalEnum = pgEnum('goal', ['lose', 'maintain', 'gain'])
+export const unitSystemEnum = pgEnum('unit_system', ['metric', 'imperial'])
 
 // Users table
 export const users = pgTable('users', {
@@ -28,6 +29,7 @@ export const userProfiles = pgTable('user_profiles', {
   activityLevel: activityLevelEnum('activity_level').notNull(),
   goal: goalEnum('goal').notNull(),
   targetWeight: real('target_weight'),
+  unitSystem: unitSystemEnum('unit_system').notNull().default('metric'), // metric or imperial
   useCustomMacros: integer('use_custom_macros').notNull().default(0), // 0 = use calculated, 1 = use custom
   customCalories: integer('custom_calories').default(0),
   customProtein: integer('custom_protein').default(0),

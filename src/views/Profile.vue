@@ -24,6 +24,7 @@ const profileForm = ref<UserProfile>({
   activityLevel: 'moderate',
   goal: 'maintain',
   targetWeight: 70,
+  unitSystem: 'metric',
   useCustomMacros: false,
   customCalories: 0,
   customProtein: 0,
@@ -193,6 +194,14 @@ function cancelEditingName() {
                   <option value="lose">Lose Weight</option>
                   <option value="maintain">Maintain Weight</option>
                   <option value="gain">Gain Weight</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Unit System:</label>
+                <select v-model="profileForm.unitSystem" required>
+                  <option value="metric">Metric (kg, km, cm)</option>
+                  <option value="imperial">Imperial (lbs, miles, inches)</option>
                 </select>
               </div>
 
