@@ -11,13 +11,13 @@
     <div v-if="latestWeight" class="current-weight-card">
       <div class="weight-display">
         <span class="label">Current Weight</span>
-        <span class="weight">{{ latestWeight.weight }} kg</span>
+        <span class="weight">{{ displayedWeight }} {{ weightUnit }}</span>
         <span class="date">As of {{ formatDate(latestWeight.date) }}</span>
       </div>
-      <div v-if="weightChange7Days !== null" class="weight-change">
+      <div v-if="weightChange7Days !== null && displayedWeightChange !== null" class="weight-change">
         <span class="change-label">7-day change:</span>
         <span :class="['change-value', weightChange7Days < 0 ? 'loss' : 'gain']">
-          {{ weightChange7Days > 0 ? '+' : '' }}{{ weightChange7Days.toFixed(1) }} kg
+          {{ weightChange7Days > 0 ? '+' : '' }}{{ displayedWeightChange }} {{ weightUnit }}
         </span>
       </div>
     </div>
@@ -31,16 +31,16 @@
         </div>
         <form @submit.prevent="handleAddWeight" class="weight-form">
           <div class="form-group">
-            <label for="weight">Weight (kg)</label>
+            <label for="weight">Weight ({{ weightUnit }})</label>
             <input
               id="weight"
               v-model.number="newWeight.weight"
               type="number"
               step="0.1"
-              min="20"
-              max="500"
+              :min="unitSystem === 'imperial' ? 40 : 20"
+              :max="unitSystem === 'imperial' ? 1100 : 500"
               required
-              placeholder="Enter weight in kg"
+              :placeholder="`Enter weight in ${weightUnit}`"
             />
           </div>
 
@@ -116,7 +116,7 @@
               <span class="date-text">{{ formatDate(entry.date) }}</span>
             </div>
             <div class="item-weight">
-              <span class="weight-value">{{ entry.weight }} kg</span>
+              <span class="weight-value">{{ displayWeight(entry.weight, unitSystem) }} {{ weightUnit }}</span>
               <span v-if="entry.notes" class="weight-notes">{{ entry.notes }}</span>
             </div>
           </div>
@@ -165,7 +165,7 @@
             r="5"
             fill="var(--primary-color)"
           >
-            <title>{{ point.date }}: {{ point.weight }} kg</title>
+            <title>{{ point.date }}: {{ displayWeight(point.weight, unitSystem) }} {{ weightUnit }}</title>
           </circle>
         </svg>
       </div>
@@ -176,9 +176,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useWeightStore } from '@/stores/weightStore'
+import { useUserStore } from '@/stores/userStore'
 import { getLocalDateString } from '@/utils/date'
+import { displayWeight, toKg, getWeightUnit } from '@/utils/units'
+import type { UnitSystem } from '@/utils/units'
 
 const weightStore = useWeightStore()
+const userStore = useUserStore()
 
 const showAddModal = ref(false)
 const isLoading = ref(false)
@@ -193,9 +197,22 @@ const newWeight = ref({
   updateProfile: false
 })
 
+const unitSystem = computed<UnitSystem>(() => userStore.profile?.unitSystem || 'metric')
+const weightUnit = computed(() => getWeightUnit(unitSystem.value))
+
 const weightEntries = computed(() => weightStore.weightEntries)
 const latestWeight = computed(() => weightEntries.value[0] || null)
 const weightChange7Days = computed(() => weightStore.getWeightChange(7))
+
+const displayedWeight = computed(() => {
+  if (!latestWeight.value) return 0
+  return displayWeight(latestWeight.value.weight, unitSystem.value)
+})
+
+const displayedWeightChange = computed(() => {
+  if (weightChange7Days.value === null) return null
+  return displayWeight(Math.abs(weightChange7Days.value), unitSystem.value)
+})
 
 const chartData = computed(() => {
   if (weightEntries.value.length < 2) return []
@@ -270,8 +287,11 @@ async function handleAddWeight() {
   isLoading.value = true
   error.value = null
 
+  // Convert weight to kg for storage
+  const weightInKg = toKg(newWeight.value.weight, unitSystem.value)
+
   const result = await weightStore.addWeightEntry(
-    newWeight.value.weight,
+    weightInKg,
     newWeight.value.date,
     newWeight.value.notes || undefined,
     newWeight.value.updateProfile
