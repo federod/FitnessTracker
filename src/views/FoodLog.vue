@@ -7,6 +7,7 @@ import NavBar from '@/components/NavBar.vue'
 import BottomNav from '@/components/BottomNav.vue'
 import NutritionProgress from '@/components/NutritionProgress.vue'
 import DateNavigator from '@/components/DateNavigator.vue'
+import BarcodeScanner from '@/components/BarcodeScanner.vue'
 import type { FoodItem } from '@/types'
 
 const foodStore = useFoodStore()
@@ -14,6 +15,7 @@ const userStore = useUserStore()
 const dateStore = useDateStore()
 const showAddModal = ref(false)
 const showEditModal = ref(false)
+const showBarcodeScanner = ref(false)
 const editingEntry = ref<any>(null)
 const selectedFood = ref<FoodItem | null>(null)
 const servings = ref(1)
@@ -212,6 +214,18 @@ function addCustomFood() {
   }
   showCustomFoodModal.value = false
 }
+
+function openBarcodeScanner(meal: 'breakfast' | 'lunch' | 'dinner' | 'snack') {
+  selectedMeal.value = meal
+  showBarcodeScanner.value = true
+}
+
+function handleScannedFood(food: FoodItem) {
+  showBarcodeScanner.value = false
+  selectedFood.value = food
+  servings.value = 1
+  showAddModal.value = true
+}
 </script>
 
 <template>
@@ -221,9 +235,11 @@ function addCustomFood() {
       <div class="food-log">
         <header class="page-header">
           <h2>Food Log</h2>
-          <button @click="showCustomFoodModal = true" class="secondary-btn">
-            + Custom Food
-          </button>
+          <div class="header-actions">
+            <button @click="showCustomFoodModal = true" class="secondary-btn">
+              + Custom Food
+            </button>
+          </div>
         </header>
 
         <DateNavigator />
@@ -240,7 +256,12 @@ function addCustomFood() {
           <div class="meal-card card">
             <div class="meal-header">
               <h3>Breakfast</h3>
-              <button @click="openAddModal('breakfast')">+ Add</button>
+              <div class="meal-actions">
+                <button @click="openBarcodeScanner('breakfast')" class="scan-btn" title="Scan barcode">
+                  📷
+                </button>
+                <button @click="openAddModal('breakfast')">+ Add</button>
+              </div>
             </div>
             <div v-if="breakfastEntries.length === 0" class="empty-meal">
               No food logged yet
@@ -267,7 +288,12 @@ function addCustomFood() {
           <div class="meal-card card">
             <div class="meal-header">
               <h3>Lunch</h3>
-              <button @click="openAddModal('lunch')">+ Add</button>
+              <div class="meal-actions">
+                <button @click="openBarcodeScanner('lunch')" class="scan-btn" title="Scan barcode">
+                  📷
+                </button>
+                <button @click="openAddModal('lunch')">+ Add</button>
+              </div>
             </div>
             <div v-if="lunchEntries.length === 0" class="empty-meal">
               No food logged yet
@@ -294,7 +320,12 @@ function addCustomFood() {
           <div class="meal-card card">
             <div class="meal-header">
               <h3>Dinner</h3>
-              <button @click="openAddModal('dinner')">+ Add</button>
+              <div class="meal-actions">
+                <button @click="openBarcodeScanner('dinner')" class="scan-btn" title="Scan barcode">
+                  📷
+                </button>
+                <button @click="openAddModal('dinner')">+ Add</button>
+              </div>
             </div>
             <div v-if="dinnerEntries.length === 0" class="empty-meal">
               No food logged yet
@@ -321,7 +352,12 @@ function addCustomFood() {
           <div class="meal-card card">
             <div class="meal-header">
               <h3>Snacks</h3>
-              <button @click="openAddModal('snack')">+ Add</button>
+              <div class="meal-actions">
+                <button @click="openBarcodeScanner('snack')" class="scan-btn" title="Scan barcode">
+                  📷
+                </button>
+                <button @click="openAddModal('snack')">+ Add</button>
+              </div>
             </div>
             <div v-if="snackEntries.length === 0" class="empty-meal">
               No food logged yet
@@ -530,6 +566,13 @@ function addCustomFood() {
         </div>
       </div>
     </div>
+
+    <!-- Barcode Scanner Modal -->
+    <BarcodeScanner
+      v-if="showBarcodeScanner"
+      @close="showBarcodeScanner = false"
+      @food-found="handleScannedFood"
+    />
   </div>
 </template>
 
@@ -543,6 +586,12 @@ function addCustomFood() {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .page-wrapper {
@@ -614,6 +663,38 @@ function addCustomFood() {
 
 .meal-header h3 {
   margin: 0;
+}
+
+.meal-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.scan-btn {
+  background: var(--ios-blue);
+  color: white;
+  border: none;
+  padding: 0.5rem 0.875rem;
+  border-radius: 8px;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 36px;
+}
+
+.scan-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.scan-btn:active {
+  transform: translateY(0);
+  opacity: 0.8;
 }
 
 .empty-meal {
