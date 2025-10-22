@@ -28,8 +28,12 @@ const remainingCalories = computed(() => {
   <div class="nutrition-progress">
     <div class="calories-summary">
       <div class="calories-main">
-        <div class="calories-number">{{ Math.round(current.calories) }}</div>
-        <div class="calories-label">/ {{ goals.calories }} calories</div>
+        <div class="calories-display">
+          <span class="calories-current">{{ Math.round(current.calories) }}</span>
+          <span class="calories-separator">/</span>
+          <span class="calories-goal">{{ goals.calories }}</span>
+        </div>
+        <div class="calories-unit">calories</div>
       </div>
       <div class="calories-remaining" :class="{ over: remainingCalories < 0 }">
         {{ remainingCalories > 0 ? remainingCalories : Math.abs(remainingCalories) }}
@@ -82,20 +86,45 @@ const remainingCalories = computed(() => {
 }
 
 .calories-main {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.calories-number {
-  font-size: 3rem;
+.calories-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+  line-height: 1;
+}
+
+.calories-current {
+  font-size: 3.5rem;
   font-weight: 700;
   color: var(--ios-blue);
   letter-spacing: -2px;
 }
 
-.calories-label {
-  font-size: 1.2rem;
+.calories-separator {
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--text-tertiary);
+  margin: 0 0.25rem;
+}
+
+.calories-goal {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: -1px;
+}
+
+.calories-unit {
+  font-size: 1rem;
   color: var(--text-secondary);
   font-weight: 500;
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .calories-remaining {
