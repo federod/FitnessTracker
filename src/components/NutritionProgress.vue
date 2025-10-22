@@ -101,10 +101,10 @@ const remainingCalories = computed(() => {
 }
 
 .calories-current {
-  font-size: 4rem;
+  font-size: 2.5rem;
   font-weight: 700;
   color: var(--ios-blue);
-  letter-spacing: -3px;
+  letter-spacing: -1.5px;
 }
 
 .calories-divider {
