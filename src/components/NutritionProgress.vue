@@ -27,17 +27,16 @@ const remainingCalories = computed(() => {
 <template>
   <div class="nutrition-progress">
     <div class="calories-summary">
-      <div class="calories-main">
+      <div class="calories-card">
         <div class="calories-display">
           <span class="calories-current">{{ Math.round(current.calories) }}</span>
-          <span class="calories-separator">/</span>
+          <span class="calories-divider">/</span>
           <span class="calories-goal">{{ goals.calories }}</span>
         </div>
-        <div class="calories-unit">calories</div>
-      </div>
-      <div class="calories-remaining" :class="{ over: remainingCalories < 0 }">
-        {{ remainingCalories > 0 ? remainingCalories : Math.abs(remainingCalories) }}
-        {{ remainingCalories > 0 ? 'remaining' : 'over' }}
+        <div class="calories-label">CALORIES</div>
+        <div class="calories-remaining" :class="{ over: remainingCalories < 0 }">
+          {{ Math.abs(remainingCalories) }} {{ remainingCalories > 0 ? 'remaining' : 'over' }}
+        </div>
       </div>
     </div>
 
@@ -82,53 +81,56 @@ const remainingCalories = computed(() => {
 
 .calories-summary {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
-.calories-main {
-  margin-bottom: 0.75rem;
+.calories-card {
+  background: var(--fill-secondary);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .calories-display {
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   line-height: 1;
+  margin-bottom: 0.75rem;
 }
 
 .calories-current {
-  font-size: 3.5rem;
+  font-size: 4rem;
   font-weight: 700;
   color: var(--ios-blue);
-  letter-spacing: -2px;
+  letter-spacing: -3px;
 }
 
-.calories-separator {
-  font-size: 2rem;
+.calories-divider {
+  font-size: 2.5rem;
   font-weight: 300;
   color: var(--text-tertiary);
-  margin: 0 0.25rem;
 }
 
 .calories-goal {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 600;
   color: var(--text-secondary);
-  letter-spacing: -1px;
+  letter-spacing: -1.5px;
 }
 
-.calories-unit {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  margin-top: 0.5rem;
+.calories-label {
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  margin-bottom: 0.5rem;
 }
 
 .calories-remaining {
-  font-size: 1rem;
+  font-size: 1.125rem;
   color: var(--ios-green);
   font-weight: 600;
 }
